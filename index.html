@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+<title>Athlyt — Ta prépa physique & athlétique</title>
+<link rel="stylesheet" href="styles.css" />
+<link rel="manifest" href="manifest.webmanifest" />
+<meta name="theme-color" content="#0a0d13" />
+<meta name="mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<meta name="apple-mobile-web-app-title" content="Athlyt" />
+<link rel="apple-touch-icon" href="icon.svg" />
+<link rel="icon" type="image/svg+xml" href="icon.svg" />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+</head>
+<body>
+  <div id="splash"><img src="icon.svg" class="splash-logo" alt="Athlyt"></div>
+
+  <header class="mobile-topbar">
+    <div class="mobile-brand">
+      <img class="logo" src="icon.svg" alt="" />
+      <span>Athlyt</span>
+    </div>
+    <button id="menu-toggle" class="menu-toggle" aria-label="Menu">☰</button>
+  </header>
+  <div id="nav-backdrop" class="nav-backdrop"></div>
+
+  <aside class="sidebar">
+    <div class="brand">
+      <img class="logo" src="icon.svg" alt="" />
+      <div>
+        <h1>Athlyt</h1>
+        <p class="tagline">Prépare. Exécute. Progresse.</p>
+      </div>
+    </div>
+    <nav id="nav">
+      <div id="nav-items"><!-- boutons de navigation injectés ici --></div>
+    </nav>
+    <div class="sidebar-footer">
+      <button id="export-btn" class="ghost-btn">⬇️ Exporter</button>
+      <button id="import-btn" class="ghost-btn">⬆️ Importer</button>
+      <input type="file" id="import-file" accept="application/json" hidden />
+      <button id="reset-btn" class="ghost-btn danger">♻️ Réinitialiser</button>
+    </div>
+  </aside>
+
+  <main id="main"><!-- Vues injectées ici --></main>
+
+  <button id="fab" class="fab" aria-label="Ajouter" hidden>+</button>
+
+  <div id="overlay-root"></div>
+  <div id="modal-root"></div>
+  <div id="toast-root"></div>
+
+  <script src="app.js"></script>
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('sw.js').catch(() => {});
+      });
+    }
+    // Bloque le zoom par pincement sur iOS Safari, qui ignore user-scalable=no
+    document.addEventListener('gesturestart', (e) => e.preventDefault());
+  </script>
+</body>
+</html>
