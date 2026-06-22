@@ -18,6 +18,10 @@ body {
 
 #root { height: 100%; }
 
+/* coquille plein écran : 100vh en repli, 100dvh quand supporté (gère les
+   barres dynamiques mobiles) */
+.app-shell { height: 100vh; height: 100dvh; }
+
 button { font-family: inherit; }
 input, textarea, select { font-family: inherit; }
 

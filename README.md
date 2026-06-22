@@ -14,9 +14,9 @@ PWA installable, hors-ligne, orientation **polyvalente multisport** : Force · V
 - **Minuteur** — Tabata · Fractionné · EMOM · AMRAP (cadran, signaux sonores).
 - **Activité** — stats, graphe des séries par séance, historique.
 - **Séance guidée** — déroulé exercice par exercice, validation des séries, chrono de repos automatique, bilan (séries / durée / RPE).
-- **Onboarding** — premier lancement (disciplines, objectif, niveau, rappels).
+- **Paramètres** (icône ⚙️ sur l'Accueil) — apparence (thème clair/sombre, accent), entraînement (disciplines, objectif, niveau, séances/semaine), rappels, réinitialisation des données.
 
-Thème **clair/sombre** automatique (préférence système), accent bleu `#1F6BFF`.
+Thème **clair/sombre** (préférence système par défaut, réglable dans Paramètres), accent bleu `#1F6BFF`.
 
 ## Stack
 
@@ -37,8 +37,9 @@ python3 -m http.server 8000      # puis http://localhost:8000
 # ou : open index.html
 
 # Modifier le design puis régénérer app.js
-npm install                      # @babel/standalone (dev)
+npm install                      # outils de dev (babel, sharp…)
 npm run build                    # transpile src/*.jsx -> app.js
+npm run icons                    # régénère les icônes PNG depuis le SVG
 ```
 
 ### Architecture des sources

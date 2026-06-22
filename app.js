@@ -633,97 +633,15 @@ Object.assign(window, {
 });
 
 /* ======================= 02-onboarding.jsx ======================= */
-// athlyt-onboarding.jsx — first-launch flow (welcome → disciplines → goal → level → reminders → ready)
+// athlyt-ui-kit.jsx — primitives partagées (réutilisées par l'écran Paramètres).
+// L'ancien flux d'onboarding/connexion a été retiré : l'app démarre directement.
 
-function OnbProgress({
-  step,
-  total
-}) {
-  const t = useTheme();
-  return /*#__PURE__*/React.createElement("div", {
-    style: {
-      display: 'flex',
-      gap: 6,
-      alignItems: 'center'
-    }
-  }, Array.from({
-    length: total
-  }).map((_, i) => /*#__PURE__*/React.createElement("div", {
-    key: i,
-    style: {
-      height: 4,
-      borderRadius: 99,
-      flex: i === step ? '0 0 22px' : '0 0 7px',
-      width: i === step ? 22 : 7,
-      background: i <= step ? t.accent : t.line,
-      transition: 'all .35s cubic-bezier(.2,.8,.2,1)'
-    }
-  })));
-}
-function OnbShell({
-  step,
-  total,
-  onBack,
-  children,
-  footer
-}) {
-  const t = useTheme();
-  return /*#__PURE__*/React.createElement("div", {
-    style: {
-      height: '100%',
-      display: 'flex',
-      flexDirection: 'column',
-      background: t.bg
-    }
-  }, /*#__PURE__*/React.createElement("div", {
-    style: {
-      display: 'flex',
-      alignItems: 'center',
-      gap: 14,
-      padding: '64px 22px 14px'
-    }
-  }, /*#__PURE__*/React.createElement("button", {
-    onClick: onBack,
-    style: {
-      width: 38,
-      height: 38,
-      borderRadius: 12,
-      border: 'none',
-      cursor: 'pointer',
-      background: t.surface,
-      color: t.ink,
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      boxShadow: t.shadowSm,
-      opacity: step === 0 ? 0 : 1,
-      pointerEvents: step === 0 ? 'none' : 'auto'
-    }
-  }, /*#__PURE__*/React.createElement(Icon, {
-    name: "chevron-l",
-    size: 20,
-    sw: 2.2
-  })), /*#__PURE__*/React.createElement(OnbProgress, {
-    step: step,
-    total: total
-  })), /*#__PURE__*/React.createElement("div", {
-    style: {
-      flex: 1,
-      overflowY: 'auto',
-      padding: '6px 22px 12px'
-    }
-  }, children), /*#__PURE__*/React.createElement("div", {
-    style: {
-      padding: '10px 22px calc(26px + env(safe-area-inset-bottom))',
-      background: t.bg
-    }
-  }, footer));
-}
 function BigBtn({
   label,
   onClick,
   disabled,
-  sub
+  sub,
+  icon = 'arrow'
 }) {
   const t = useTheme();
   return /*#__PURE__*/React.createElement("button", {
@@ -747,8 +665,8 @@ function BigBtn({
       boxShadow: disabled ? 'none' : '0 8px 22px rgba(31,107,255,0.30)',
       transition: 'background .2s, box-shadow .2s, transform .1s'
     }
-  }, /*#__PURE__*/React.createElement("span", null, label), /*#__PURE__*/React.createElement(Icon, {
-    name: "arrow",
+  }, /*#__PURE__*/React.createElement("span", null, label), icon && /*#__PURE__*/React.createElement(Icon, {
+    name: icon,
     size: 19,
     sw: 2.1,
     stroke: disabled ? t.faint : t.accentInk
@@ -823,422 +741,6 @@ function SelectCard({
     sw: 3,
     stroke: "#fff"
   })));
-}
-function Onboarding({
-  onDone
-}) {
-  const t = useTheme();
-  const [step, setStep] = React.useState(0);
-  const [disc, setDisc] = React.useState(['force', 'vitesse']);
-  const [goal, setGoal] = React.useState('explosivite');
-  const [level, setLevel] = React.useState('Intermédiaire');
-  const [freq, setFreq] = React.useState(4);
-  const [reminders, setReminders] = React.useState(true);
-  const [days, setDays] = React.useState([1, 3, 5]);
-  const TOTAL = 5;
-  const toggle = (arr, set, v) => set(arr.includes(v) ? arr.filter(x => x !== v) : [...arr, v]);
-  const back = () => setStep(s => Math.max(0, s - 1));
-  const next = () => setStep(s => s + 1);
-  const goals = [{
-    id: 'performance',
-    title: 'Performance',
-    sub: 'Progresser sur mes charges & chronos'
-  }, {
-    id: 'explosivite',
-    title: 'Explosivité',
-    sub: 'Gagner en vitesse et en puissance'
-  }, {
-    id: 'endurance',
-    title: 'Endurance',
-    sub: 'Tenir l’effort plus longtemps'
-  }, {
-    id: 'forme',
-    title: 'Remise en forme',
-    sub: 'Bouger régulièrement, me sentir bien'
-  }];
-  const dayLabels = ['L', 'M', 'M', 'J', 'V', 'S', 'D'];
-
-  // Step 0 — welcome (no shell, full bleed hero)
-  if (step === 0) {
-    return /*#__PURE__*/React.createElement("div", {
-      style: {
-        height: '100%',
-        display: 'flex',
-        flexDirection: 'column',
-        background: t.bg,
-        padding: '0 26px calc(28px + env(safe-area-inset-bottom))'
-      }
-    }, /*#__PURE__*/React.createElement("div", {
-      style: {
-        flex: 1,
-        display: 'flex',
-        flexDirection: 'column',
-        justifyContent: 'center'
-      }
-    }, /*#__PURE__*/React.createElement(Wordmark, {
-      big: true
-    }), /*#__PURE__*/React.createElement("h1", {
-      style: {
-        margin: '26px 0 0',
-        fontSize: 40,
-        lineHeight: 1.04,
-        fontWeight: 760,
-        letterSpacing: -1.4,
-        color: t.ink
-      }
-    }, "Pr\xE9pare.", /*#__PURE__*/React.createElement("br", null), "Ex\xE9cute.", /*#__PURE__*/React.createElement("br", null), /*#__PURE__*/React.createElement("span", {
-      style: {
-        color: t.accent
-      }
-    }, "Progresse.")), /*#__PURE__*/React.createElement("p", {
-      style: {
-        margin: '20px 0 0',
-        fontSize: 17,
-        lineHeight: 1.45,
-        color: t.sub,
-        maxWidth: 300
-      }
-    }, "Ton coach de pr\xE9pa physique. Construis tes s\xE9ances, d\xE9roule-les en mode guid\xE9, minute tes intervalles."), /*#__PURE__*/React.createElement("div", {
-      style: {
-        display: 'flex',
-        gap: 8,
-        marginTop: 26,
-        flexWrap: 'wrap'
-      }
-    }, ['Force', 'Vitesse', 'Pliométrie', 'Endurance', 'Gainage', 'Mobilité'].map(x => /*#__PURE__*/React.createElement("span", {
-      key: x,
-      style: {
-        fontSize: 13,
-        fontWeight: 600,
-        color: t.sub,
-        background: t.surface,
-        border: `1px solid ${t.line}`,
-        borderRadius: 99,
-        padding: '6px 12px'
-      }
-    }, x)))), /*#__PURE__*/React.createElement(BigBtn, {
-      label: "Commencer",
-      onClick: next
-    }), /*#__PURE__*/React.createElement("p", {
-      style: {
-        textAlign: 'center',
-        fontSize: 13,
-        color: t.faint,
-        margin: '14px 0 0'
-      }
-    }, "D\xE9j\xE0 un compte ? ", /*#__PURE__*/React.createElement("span", {
-      style: {
-        color: t.accent,
-        fontWeight: 600
-      }
-    }, "Se connecter")));
-  }
-  let body,
-    footer,
-    valid = true;
-  if (step === 1) {
-    body = /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement(StepTitle, {
-      k: "Tes disciplines",
-      s: "Choisis ce que tu travailles. On adaptera ta biblioth\xE8que et tes s\xE9ances."
-    }), /*#__PURE__*/React.createElement("div", {
-      style: {
-        display: 'flex',
-        flexDirection: 'column',
-        gap: 10,
-        marginTop: 20
-      }
-    }, CATEGORIES.map(c => /*#__PURE__*/React.createElement(SelectCard, {
-      key: c.id,
-      color: c.color,
-      title: c.name,
-      active: disc.includes(c.id),
-      onClick: () => toggle(disc, setDisc, c.id)
-    }))));
-    valid = disc.length > 0;
-    footer = /*#__PURE__*/React.createElement(BigBtn, {
-      label: "Continuer",
-      onClick: next,
-      disabled: !valid
-    });
-  }
-  if (step === 2) {
-    body = /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement(StepTitle, {
-      k: "Ton objectif principal",
-      s: "Pour orienter l\u2019intensit\xE9 et le type de s\xE9ances propos\xE9es."
-    }), /*#__PURE__*/React.createElement("div", {
-      style: {
-        display: 'flex',
-        flexDirection: 'column',
-        gap: 10,
-        marginTop: 20
-      }
-    }, goals.map(g => /*#__PURE__*/React.createElement(SelectCard, {
-      key: g.id,
-      title: g.title,
-      sub: g.sub,
-      active: goal === g.id,
-      onClick: () => setGoal(g.id)
-    }))));
-    footer = /*#__PURE__*/React.createElement(BigBtn, {
-      label: "Continuer",
-      onClick: next
-    });
-  }
-  if (step === 3) {
-    body = /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement(StepTitle, {
-      k: "Ton niveau & rythme",
-      s: "On calibre le volume pour que \xE7a reste tenable."
-    }), /*#__PURE__*/React.createElement("div", {
-      style: {
-        marginTop: 22
-      }
-    }, /*#__PURE__*/React.createElement(Label, {
-      text: "Niveau"
-    }), /*#__PURE__*/React.createElement(Segmented, {
-      options: ['Débutant', 'Intermédiaire', 'Avancé'],
-      value: level,
-      onChange: setLevel
-    })), /*#__PURE__*/React.createElement("div", {
-      style: {
-        marginTop: 24
-      }
-    }, /*#__PURE__*/React.createElement(Label, {
-      text: "S\xE9ances par semaine"
-    }), /*#__PURE__*/React.createElement(FreqStepper, {
-      value: freq,
-      onChange: setFreq
-    })));
-    footer = /*#__PURE__*/React.createElement(BigBtn, {
-      label: "Continuer",
-      onClick: next
-    });
-  }
-  if (step === 4) {
-    body = /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement(StepTitle, {
-      k: "Rappels d\u2019entra\xEEnement",
-      s: "Un petit coup de pouce pour ne rien l\xE2cher."
-    }), /*#__PURE__*/React.createElement("div", {
-      style: {
-        marginTop: 20,
-        background: t.surface,
-        borderRadius: 18,
-        border: `1px solid ${t.line}`,
-        padding: '16px 18px',
-        display: 'flex',
-        alignItems: 'center',
-        gap: 14,
-        boxShadow: t.shadowSm
-      }
-    }, /*#__PURE__*/React.createElement("span", {
-      style: {
-        width: 40,
-        height: 40,
-        borderRadius: 12,
-        background: t.accentSoft,
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        flexShrink: 0
-      }
-    }, /*#__PURE__*/React.createElement(Icon, {
-      name: "bell",
-      size: 21,
-      stroke: t.accent
-    })), /*#__PURE__*/React.createElement("div", {
-      style: {
-        flex: 1
-      }
-    }, /*#__PURE__*/React.createElement("div", {
-      style: {
-        fontSize: 16,
-        fontWeight: 640,
-        color: t.ink
-      }
-    }, "Activer les rappels"), /*#__PURE__*/React.createElement("div", {
-      style: {
-        fontSize: 13,
-        color: t.sub,
-        marginTop: 1
-      }
-    }, "Notification les jours d\u2019entra\xEEnement")), /*#__PURE__*/React.createElement(Switch, {
-      on: reminders,
-      onClick: () => setReminders(!reminders)
-    })), reminders && /*#__PURE__*/React.createElement("div", {
-      style: {
-        marginTop: 22
-      }
-    }, /*#__PURE__*/React.createElement(Label, {
-      text: "Jours"
-    }), /*#__PURE__*/React.createElement("div", {
-      style: {
-        display: 'flex',
-        gap: 8
-      }
-    }, dayLabels.map((d, i) => {
-      const on = days.includes(i);
-      return /*#__PURE__*/React.createElement("button", {
-        key: i,
-        onClick: () => toggle(days, setDays, i),
-        style: {
-          flex: 1,
-          aspectRatio: '1',
-          borderRadius: 14,
-          cursor: 'pointer',
-          border: `1.5px solid ${on ? t.accent : t.line}`,
-          background: on ? t.accent : t.surface,
-          color: on ? '#fff' : t.sub,
-          fontSize: 15,
-          fontWeight: 700,
-          transition: 'all .15s'
-        }
-      }, d);
-    })), /*#__PURE__*/React.createElement("div", {
-      style: {
-        marginTop: 16
-      }
-    }, /*#__PURE__*/React.createElement(Label, {
-      text: "Heure"
-    }), /*#__PURE__*/React.createElement("div", {
-      style: {
-        background: t.surface,
-        border: `1px solid ${t.line}`,
-        borderRadius: 16,
-        padding: '14px 18px',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        boxShadow: t.shadowSm
-      }
-    }, /*#__PURE__*/React.createElement("div", {
-      style: {
-        display: 'flex',
-        alignItems: 'center',
-        gap: 10,
-        color: t.ink,
-        fontWeight: 600,
-        fontSize: 16
-      }
-    }, /*#__PURE__*/React.createElement(Icon, {
-      name: "clock",
-      size: 19,
-      stroke: t.sub
-    }), " Rappel"), /*#__PURE__*/React.createElement("div", {
-      style: {
-        fontSize: 17,
-        fontWeight: 700,
-        color: t.accent
-      }
-    }, "18:30")))));
-    footer = /*#__PURE__*/React.createElement(BigBtn, {
-      label: "Terminer",
-      onClick: next
-    });
-  }
-  if (step === 5) {
-    const names = disc.map(d => catById(d).name);
-    return /*#__PURE__*/React.createElement("div", {
-      style: {
-        height: '100%',
-        display: 'flex',
-        flexDirection: 'column',
-        background: t.bg,
-        padding: '0 26px calc(28px + env(safe-area-inset-bottom))'
-      }
-    }, /*#__PURE__*/React.createElement("div", {
-      style: {
-        flex: 1,
-        display: 'flex',
-        flexDirection: 'column',
-        justifyContent: 'center',
-        alignItems: 'center',
-        textAlign: 'center'
-      }
-    }, /*#__PURE__*/React.createElement(Ring, {
-      size: 130,
-      stroke: 12,
-      value: 1,
-      gradient: [t.energy1, t.energy2],
-      track: t.fill
-    }, /*#__PURE__*/React.createElement(Icon, {
-      name: "check",
-      size: 52,
-      sw: 2.6,
-      stroke: t.accent
-    })), /*#__PURE__*/React.createElement("h1", {
-      style: {
-        margin: '30px 0 0',
-        fontSize: 30,
-        fontWeight: 740,
-        letterSpacing: -0.8,
-        color: t.ink
-      }
-    }, "Tout est pr\xEAt"), /*#__PURE__*/React.createElement("p", {
-      style: {
-        margin: '12px 0 0',
-        fontSize: 16,
-        lineHeight: 1.5,
-        color: t.sub,
-        maxWidth: 290
-      }
-    }, "On a pr\xE9par\xE9 ", /*#__PURE__*/React.createElement("b", {
-      style: {
-        color: t.ink
-      }
-    }, "3 s\xE9ances"), " sur mesure pour ton objectif", goal === 'explosivite' ? ' d’explosivité' : '', ", ", freq, "\xD7 par semaine."), /*#__PURE__*/React.createElement("div", {
-      style: {
-        display: 'flex',
-        gap: 8,
-        marginTop: 20,
-        flexWrap: 'wrap',
-        justifyContent: 'center'
-      }
-    }, names.map(n => /*#__PURE__*/React.createElement("span", {
-      key: n,
-      style: {
-        fontSize: 13,
-        fontWeight: 600,
-        color: t.ink,
-        background: t.surface,
-        border: `1px solid ${t.line}`,
-        borderRadius: 99,
-        padding: '6px 12px'
-      }
-    }, n)))), /*#__PURE__*/React.createElement(BigBtn, {
-      label: "Entrer dans Athlyt",
-      onClick: onDone
-    }));
-  }
-  return /*#__PURE__*/React.createElement(OnbShell, {
-    step: step - 1,
-    total: TOTAL - 1,
-    onBack: back,
-    footer: footer
-  }, body);
-}
-
-/* small onboarding primitives */
-function StepTitle({
-  k,
-  s
-}) {
-  const t = useTheme();
-  return /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("h1", {
-    style: {
-      margin: 0,
-      fontSize: 28,
-      fontWeight: 740,
-      letterSpacing: -0.7,
-      color: t.ink,
-      lineHeight: 1.1
-    }
-  }, k), s && /*#__PURE__*/React.createElement("p", {
-    style: {
-      margin: '10px 0 0',
-      fontSize: 15.5,
-      lineHeight: 1.45,
-      color: t.sub
-    }
-  }, s));
 }
 function Label({
   text
@@ -1414,14 +916,13 @@ function Wordmark({
   }, "Athlyt"));
 }
 Object.assign(window, {
-  Onboarding,
   Switch,
   Segmented,
   Label,
-  Wordmark,
-  BigBtn,
+  FreqStepper,
   SelectCard,
-  StepTitle
+  BigBtn,
+  Wordmark
 });
 
 /* ======================= 03-overlays.jsx ======================= */
@@ -3466,15 +2967,24 @@ function Meta({
 /* ----------------------------------------------------------- Accueil */
 function HomeScreen({
   data,
-  actions
+  actions,
+  prefs
 }) {
   const t = useTheme();
   const hour = new Date().getHours();
   const greet = hour < 12 ? 'Bonjour' : hour < 18 ? 'Bon après-midi' : 'Bonsoir';
   const weekAgo = Date.now() - 7 * 864e5;
   const thisWeek = data.history.filter(h => new Date(h.date).getTime() >= weekAgo);
-  const goalWk = 4;
-  const streak = 5;
+  const goalWk = prefs && prefs.freq || 4;
+  // série réelle : nb de jours consécutifs (jusqu'à aujourd'hui) avec ≥1 séance
+  const dayKeys = new Set(data.history.map(h => new Date(h.date).toDateString()));
+  let streak = 0;
+  for (let i = 0; i < 366; i++) {
+    const d = new Date();
+    d.setHours(0, 0, 0, 0);
+    d.setDate(d.getDate() - i);
+    if (dayKeys.has(d.toDateString())) streak++;else if (i > 0) break; // une absence aujourd'hui (i=0) n'interrompt pas la série
+  }
   const suggested = data.sessions[0];
   return /*#__PURE__*/React.createElement("div", {
     style: {
@@ -3483,20 +2993,26 @@ function HomeScreen({
   }, /*#__PURE__*/React.createElement(ScreenHeader, {
     title: greet,
     sub: "Pr\xEAt \xE0 te d\xE9passer ?",
-    trailing: /*#__PURE__*/React.createElement("span", {
+    trailing: /*#__PURE__*/React.createElement("button", {
+      onClick: () => actions.openSettings(),
+      "aria-label": "Param\xE8tres",
       style: {
         width: 42,
         height: 42,
         borderRadius: 99,
         background: t.fill,
+        border: 'none',
+        cursor: 'pointer',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        color: t.ink,
-        fontWeight: 800,
-        fontSize: 16
+        flexShrink: 0
       }
-    }, "A")
+    }, /*#__PURE__*/React.createElement(Icon, {
+      name: "settings",
+      size: 21,
+      stroke: t.ink
+    }))
   }), /*#__PURE__*/React.createElement("div", {
     style: {
       padding: '14px 20px 0'
@@ -3569,7 +3085,7 @@ function HomeScreen({
     name: "flame",
     size: 16,
     stroke: "#F59E0B"
-  }), " S\xE9rie de ", streak, " jours"))), /*#__PURE__*/React.createElement("div", {
+  }), " ", streak > 0 ? `Série de ${streak} jour${streak > 1 ? 's' : ''}` : 'Commence ta série'))), /*#__PURE__*/React.createElement("div", {
     style: {
       margin: '22px 0 10px',
       display: 'flex',
@@ -4432,9 +3948,9 @@ Object.assign(window, {
 
 /* ======================= 06-app.jsx ======================= */
 // athlyt-app.jsx — application root.
-// Adapté du design Claude pour une vraie PWA plein écran :
-// le cadre « iPhone » de la maquette (IOSDevice) et le panneau d'édition (Tweaks)
-// sont retirés ; le reste de l'app du design est conservé tel quel.
+// Adapté du design Claude pour une vraie PWA plein écran : le cadre « iPhone »
+// de la maquette, le panneau d'édition et l'onboarding/connexion ont été retirés.
+// Les réglages de l'onboarding sont désormais dans l'écran Paramètres.
 
 const {
   useState,
@@ -4442,8 +3958,16 @@ const {
   useMemo
 } = React;
 const STORE = 'athlyt-v2';
-const ACCENT = '#1F6BFF'; // accent du design (modifiable)
-
+const ACCENT = '#1F6BFF'; // accent par défaut (modifiable dans Paramètres)
+const DEFAULT_PREFS = {
+  disciplines: ['force', 'vitesse'],
+  goal: 'explosivite',
+  level: 'Intermédiaire',
+  freq: 4,
+  reminders: false,
+  days: [1, 3, 5],
+  time: '18:30'
+};
 function hexA(hex, a) {
   const h = hex.replace('#', '');
   const r = parseInt(h.slice(0, 2), 16),
@@ -4477,9 +4001,13 @@ function prefersDark() {
 function App() {
   const persisted = useMemo(loadStore, []);
   const [data, setData] = useState(() => persisted?.data || seedData());
-  const [onboarded, setOnboarded] = useState(() => persisted?.onboarded || false);
   const [tab, setTab] = useState(() => persisted?.tab || 'home');
-  const [dark] = useState(() => persisted?.dark ?? prefersDark());
+  const [dark, setDark] = useState(() => persisted?.dark ?? prefersDark());
+  const [accent, setAccent] = useState(() => persisted?.accent || ACCENT);
+  const [prefs, setPrefs] = useState(() => ({
+    ...DEFAULT_PREFS,
+    ...(persisted?.prefs || {})
+  }));
 
   // overlays / sheets
   const [guidedId, setGuidedId] = useState(null);
@@ -4487,8 +4015,9 @@ function App() {
   const [editSessionId, setEditSessionId] = useState(null);
   const [exDetail, setExDetail] = useState(null);
   const [exEdit, setExEdit] = useState(undefined); // undefined = fermé, null = nouveau, obj = édition
+  const [settingsOpen, setSettingsOpen] = useState(false);
   const [toastMsg, setToastMsg] = useState(null);
-  const theme = useMemo(() => buildTheme(dark, ACCENT), [dark]);
+  const theme = useMemo(() => buildTheme(dark, accent), [dark, accent]);
 
   // recherche d'exercice exposée aux helpers d'écran
   useEffect(() => {
@@ -4501,12 +4030,13 @@ function App() {
     try {
       localStorage.setItem(STORE, JSON.stringify({
         data,
-        onboarded,
         tab,
-        dark
+        dark,
+        accent,
+        prefs
       }));
     } catch (e) {}
-  }, [data, onboarded, tab, dark]);
+  }, [data, tab, dark, accent, prefs]);
 
   // fond + couleur de barre système alignés sur le thème
   useEffect(() => {
@@ -4562,18 +4092,25 @@ function App() {
     ...d,
     history: [h, ...d.history]
   }));
+  const resetAll = () => {
+    setData(seedData());
+    setTab('home');
+    toast('Données réinitialisées');
+  };
   const actions = {
     goTab: setTab,
     startGuided: id => setGuidedId(id),
     openSession: id => setEditSessionId(id),
-    openTimer: mode => setTimerMode(mode)
+    openTimer: mode => setTimerMode(mode),
+    openSettings: () => setSettingsOpen(true)
   };
   const guidedSession = guidedId && data.sessions.find(s => s.id === guidedId);
   const editSession = editSessionId && data.sessions.find(s => s.id === editSessionId);
   let screen;
   if (tab === 'home') screen = /*#__PURE__*/React.createElement(HomeScreen, {
     data: data,
-    actions: actions
+    actions: actions,
+    prefs: prefs
   });else if (tab === 'sessions') screen = /*#__PURE__*/React.createElement(SessionsScreen, {
     data: data,
     actions: actions,
@@ -4590,9 +4127,9 @@ function App() {
   return /*#__PURE__*/React.createElement(ThemeCtx.Provider, {
     value: theme
   }, /*#__PURE__*/React.createElement("div", {
+    className: "app-shell",
     style: {
       position: 'relative',
-      height: '100dvh',
       width: '100%',
       maxWidth: 460,
       margin: '0 auto',
@@ -4607,7 +4144,9 @@ function App() {
       position: 'absolute',
       inset: 0,
       overflowY: 'auto',
-      paddingBottom: 92,
+      overscrollBehavior: 'contain',
+      WebkitOverflowScrolling: 'touch',
+      paddingBottom: 'calc(96px + env(safe-area-inset-bottom))',
       animation: 'athScreen .25s ease'
     }
   }, screen), /*#__PURE__*/React.createElement(TabBar, {
@@ -4652,18 +4191,16 @@ function App() {
     onSave: upsertExercise,
     onDelete: deleteExercise,
     onClose: () => setExEdit(undefined)
-  }), !onboarded && /*#__PURE__*/React.createElement("div", {
-    style: {
-      position: 'absolute',
-      inset: 0,
-      zIndex: 120
-    }
-  }, /*#__PURE__*/React.createElement(Onboarding, {
-    onDone: () => {
-      setOnboarded(true);
-      setTab('home');
-    }
-  })), toastMsg && /*#__PURE__*/React.createElement("div", {
+  }), settingsOpen && /*#__PURE__*/React.createElement(SettingsScreen, {
+    dark: dark,
+    setDark: setDark,
+    accent: accent,
+    setAccent: setAccent,
+    prefs: prefs,
+    setPrefs: setPrefs,
+    onReset: resetAll,
+    onClose: () => setSettingsOpen(false)
+  }), toastMsg && /*#__PURE__*/React.createElement("div", {
     style: {
       position: 'absolute',
       left: '50%',
@@ -4681,4 +4218,431 @@ function App() {
     }
   }, toastMsg)));
 }
+
+/* ======================= 07-settings.jsx ======================= */
+// athlyt-settings.jsx — écran Paramètres.
+// Regroupe les réglages que proposait l'ancien écran de démarrage (disciplines,
+// objectif, niveau, fréquence, rappels) + l'apparence (thème, accent) + données.
+
+const ACCENT_OPTIONS = ['#1F6BFF', '#06B6D4', '#FF5A3C', '#7C5CFF', '#10B981'];
+const GOAL_OPTIONS = [{
+  id: 'performance',
+  title: 'Performance',
+  sub: 'Progresser sur mes charges & chronos'
+}, {
+  id: 'explosivite',
+  title: 'Explosivité',
+  sub: 'Gagner en vitesse et en puissance'
+}, {
+  id: 'endurance',
+  title: 'Endurance',
+  sub: 'Tenir l’effort plus longtemps'
+}, {
+  id: 'forme',
+  title: 'Remise en forme',
+  sub: 'Bouger régulièrement, me sentir bien'
+}];
+const DAY_LABELS = ['L', 'M', 'M', 'J', 'V', 'S', 'D'];
+function SettingsSection({
+  title,
+  children
+}) {
+  const t = useTheme();
+  return /*#__PURE__*/React.createElement("div", {
+    style: {
+      marginBottom: 26
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 13,
+      fontWeight: 700,
+      letterSpacing: 0.4,
+      textTransform: 'uppercase',
+      color: t.faint,
+      margin: '0 4px 12px'
+    }
+  }, title), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      flexDirection: 'column',
+      gap: 10
+    }
+  }, children));
+}
+function RowCard({
+  icon,
+  iconColor,
+  title,
+  sub,
+  children
+}) {
+  const t = useTheme();
+  return /*#__PURE__*/React.createElement("div", {
+    style: {
+      background: t.surface,
+      border: `1px solid ${t.line}`,
+      borderRadius: 16,
+      padding: '14px 16px',
+      display: 'flex',
+      alignItems: 'center',
+      gap: 14,
+      boxShadow: t.shadowSm
+    }
+  }, icon && /*#__PURE__*/React.createElement("span", {
+    style: {
+      width: 38,
+      height: 38,
+      borderRadius: 11,
+      background: (iconColor || t.accent) + '18',
+      flexShrink: 0,
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center'
+    }
+  }, /*#__PURE__*/React.createElement(Icon, {
+    name: icon,
+    size: 20,
+    stroke: iconColor || t.accent
+  })), /*#__PURE__*/React.createElement("div", {
+    style: {
+      flex: 1,
+      minWidth: 0
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 16,
+      fontWeight: 640,
+      color: t.ink
+    }
+  }, title), sub && /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 13,
+      color: t.sub,
+      marginTop: 1
+    }
+  }, sub)), children);
+}
+function SettingsScreen({
+  dark,
+  setDark,
+  accent,
+  setAccent,
+  prefs,
+  setPrefs,
+  onReset,
+  onClose
+}) {
+  const t = useTheme();
+  const [confirm, setConfirm] = React.useState(false);
+  const setP = (k, v) => setPrefs(p => ({
+    ...p,
+    [k]: v
+  }));
+  const toggleIn = (key, v) => setPrefs(p => {
+    const arr = p[key] || [];
+    return {
+      ...p,
+      [key]: arr.includes(v) ? arr.filter(x => x !== v) : [...arr, v]
+    };
+  });
+  return /*#__PURE__*/React.createElement("div", {
+    style: {
+      position: 'absolute',
+      inset: 0,
+      zIndex: 110,
+      background: t.bg,
+      display: 'flex',
+      flexDirection: 'column'
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      padding: '58px 20px 8px',
+      display: 'flex',
+      alignItems: 'center',
+      gap: 12
+    }
+  }, /*#__PURE__*/React.createElement("button", {
+    onClick: onClose,
+    style: iconBtn(t)
+  }, /*#__PURE__*/React.createElement(Icon, {
+    name: "chevron-l",
+    size: 20,
+    sw: 2.2,
+    stroke: t.ink
+  })), /*#__PURE__*/React.createElement("div", {
+    style: {
+      flex: 1,
+      fontSize: 22,
+      fontWeight: 800,
+      letterSpacing: -0.5,
+      color: t.ink
+    }
+  }, "Param\xE8tres")), /*#__PURE__*/React.createElement("div", {
+    style: {
+      flex: 1,
+      overflowY: 'auto',
+      WebkitOverflowScrolling: 'touch',
+      padding: '14px 20px calc(28px + env(safe-area-inset-bottom))'
+    }
+  }, /*#__PURE__*/React.createElement(SettingsSection, {
+    title: "Apparence"
+  }, /*#__PURE__*/React.createElement(RowCard, {
+    icon: "bolt",
+    title: "Mode sombre",
+    sub: "Suivre le syst\xE8me ou forcer"
+  }, /*#__PURE__*/React.createElement(Switch, {
+    on: dark,
+    onClick: () => setDark(!dark)
+  })), /*#__PURE__*/React.createElement("div", {
+    style: {
+      background: t.surface,
+      border: `1px solid ${t.line}`,
+      borderRadius: 16,
+      padding: '14px 16px',
+      boxShadow: t.shadowSm
+    }
+  }, /*#__PURE__*/React.createElement(Label, {
+    text: "Couleur d\u2019accent"
+  }), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      gap: 12
+    }
+  }, ACCENT_OPTIONS.map(c => {
+    const on = c.toLowerCase() === accent.toLowerCase();
+    return /*#__PURE__*/React.createElement("button", {
+      key: c,
+      onClick: () => setAccent(c),
+      "aria-label": c,
+      style: {
+        width: 40,
+        height: 40,
+        borderRadius: 99,
+        background: c,
+        cursor: 'pointer',
+        border: on ? `3px solid ${t.surface}` : 'none',
+        boxShadow: on ? `0 0 0 2px ${c}` : t.shadowSm,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        flexShrink: 0
+      }
+    }, on && /*#__PURE__*/React.createElement(Icon, {
+      name: "check",
+      size: 18,
+      sw: 3,
+      stroke: "#fff"
+    }));
+  })))), /*#__PURE__*/React.createElement(SettingsSection, {
+    title: "Entra\xEEnement"
+  }, /*#__PURE__*/React.createElement(Label, {
+    text: "Mes disciplines"
+  }), CATEGORIES.map(c => /*#__PURE__*/React.createElement(SelectCard, {
+    key: c.id,
+    color: c.color,
+    title: c.name,
+    active: (prefs.disciplines || []).includes(c.id),
+    onClick: () => toggleIn('disciplines', c.id)
+  })), /*#__PURE__*/React.createElement("div", {
+    style: {
+      height: 4
+    }
+  }), /*#__PURE__*/React.createElement(Label, {
+    text: "Objectif principal"
+  }), GOAL_OPTIONS.map(g => /*#__PURE__*/React.createElement(SelectCard, {
+    key: g.id,
+    title: g.title,
+    sub: g.sub,
+    active: prefs.goal === g.id,
+    onClick: () => setP('goal', g.id)
+  })), /*#__PURE__*/React.createElement("div", {
+    style: {
+      height: 8
+    }
+  }), /*#__PURE__*/React.createElement(Label, {
+    text: "Niveau"
+  }), /*#__PURE__*/React.createElement(Segmented, {
+    options: ['Débutant', 'Intermédiaire', 'Avancé'],
+    value: prefs.level,
+    onChange: v => setP('level', v)
+  }), /*#__PURE__*/React.createElement("div", {
+    style: {
+      height: 8
+    }
+  }), /*#__PURE__*/React.createElement(Label, {
+    text: "S\xE9ances par semaine"
+  }), /*#__PURE__*/React.createElement(FreqStepper, {
+    value: prefs.freq,
+    onChange: v => setP('freq', v)
+  })), /*#__PURE__*/React.createElement(SettingsSection, {
+    title: "Rappels"
+  }, /*#__PURE__*/React.createElement(RowCard, {
+    icon: "bell",
+    title: "Activer les rappels",
+    sub: "Les jours d\u2019entra\xEEnement"
+  }, /*#__PURE__*/React.createElement(Switch, {
+    on: prefs.reminders,
+    onClick: () => setP('reminders', !prefs.reminders)
+  })), prefs.reminders && /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("div", {
+    style: {
+      background: t.surface,
+      border: `1px solid ${t.line}`,
+      borderRadius: 16,
+      padding: '14px 16px',
+      boxShadow: t.shadowSm
+    }
+  }, /*#__PURE__*/React.createElement(Label, {
+    text: "Jours"
+  }), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      gap: 8
+    }
+  }, DAY_LABELS.map((d, i) => {
+    const on = (prefs.days || []).includes(i);
+    return /*#__PURE__*/React.createElement("button", {
+      key: i,
+      onClick: () => toggleIn('days', i),
+      style: {
+        flex: 1,
+        aspectRatio: '1',
+        borderRadius: 13,
+        cursor: 'pointer',
+        border: `1.5px solid ${on ? t.accent : t.line}`,
+        background: on ? t.accent : t.bg,
+        color: on ? '#fff' : t.sub,
+        fontSize: 15,
+        fontWeight: 700,
+        transition: 'all .15s'
+      }
+    }, d);
+  }))), /*#__PURE__*/React.createElement(RowCard, {
+    icon: "clock",
+    iconColor: t.sub,
+    title: "Heure du rappel"
+  }, /*#__PURE__*/React.createElement("input", {
+    type: "time",
+    value: prefs.time,
+    onChange: e => setP('time', e.target.value),
+    style: {
+      border: `1px solid ${t.line}`,
+      background: t.bg,
+      color: t.ink,
+      borderRadius: 10,
+      padding: '8px 10px',
+      fontSize: 16,
+      fontWeight: 700,
+      fontFamily: 'inherit',
+      outline: 'none'
+    }
+  })))), /*#__PURE__*/React.createElement(SettingsSection, {
+    title: "Donn\xE9es"
+  }, /*#__PURE__*/React.createElement("button", {
+    onClick: () => setConfirm(true),
+    style: {
+      width: '100%',
+      textAlign: 'left',
+      cursor: 'pointer',
+      background: t.surface,
+      border: `1px solid ${t.line}`,
+      borderRadius: 16,
+      padding: '14px 16px',
+      display: 'flex',
+      alignItems: 'center',
+      gap: 14,
+      boxShadow: t.shadowSm
+    }
+  }, /*#__PURE__*/React.createElement("span", {
+    style: {
+      width: 38,
+      height: 38,
+      borderRadius: 11,
+      background: 'rgba(255,90,95,0.14)',
+      flexShrink: 0,
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center'
+    }
+  }, /*#__PURE__*/React.createElement(Icon, {
+    name: "close",
+    size: 18,
+    sw: 2.4,
+    stroke: "#FF5A5F"
+  })), /*#__PURE__*/React.createElement("div", {
+    style: {
+      flex: 1
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 16,
+      fontWeight: 640,
+      color: '#FF5A5F'
+    }
+  }, "R\xE9initialiser les donn\xE9es"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 13,
+      color: t.sub,
+      marginTop: 1
+    }
+  }, "Restaure les donn\xE9es d\u2019exemple")))), /*#__PURE__*/React.createElement("div", {
+    style: {
+      textAlign: 'center',
+      color: t.faint,
+      fontSize: 12.5,
+      marginTop: 4
+    }
+  }, "Athlyt \xB7 v1")), confirm && /*#__PURE__*/React.createElement(Sheet, {
+    title: "R\xE9initialiser ?",
+    onClose: () => setConfirm(false)
+  }, /*#__PURE__*/React.createElement("p", {
+    style: {
+      margin: '0 0 18px',
+      fontSize: 15,
+      lineHeight: 1.5,
+      color: t.sub
+    }
+  }, "Tes s\xE9ances, exercices et historique seront remplac\xE9s par les donn\xE9es d\u2019exemple. Action irr\xE9versible."), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      gap: 10
+    }
+  }, /*#__PURE__*/React.createElement("button", {
+    onClick: () => setConfirm(false),
+    style: {
+      flex: 1,
+      border: `1px solid ${t.line}`,
+      cursor: 'pointer',
+      background: t.surface,
+      color: t.ink,
+      borderRadius: 14,
+      padding: '15px',
+      fontSize: 16,
+      fontWeight: 680
+    }
+  }, "Annuler"), /*#__PURE__*/React.createElement("button", {
+    onClick: () => {
+      onReset();
+      setConfirm(false);
+      onClose();
+    },
+    style: {
+      flex: 1,
+      border: 'none',
+      cursor: 'pointer',
+      background: '#FF5A5F',
+      color: '#fff',
+      borderRadius: 14,
+      padding: '15px',
+      fontSize: 16,
+      fontWeight: 700
+    }
+  }, "R\xE9initialiser"))));
+}
+Object.assign(window, {
+  SettingsScreen
+});
+
+/* ======================= 99-mount.jsx ======================= */
+// athlyt-mount.jsx — point d'entrée. Doit être chargé EN DERNIER (après tous les
+// composants) : le rendu déclenche App qui référence tous les écrans/overlays.
 ReactDOM.createRoot(document.getElementById('root')).render(/*#__PURE__*/React.createElement(App, null));

@@ -1,5 +1,5 @@
 // Athlyt — service worker (offline-first)
-const CACHE = 'athlyt-v2';
+const CACHE = 'athlyt-v3';
 const ASSETS = [
   './',
   './index.html',
@@ -7,6 +7,9 @@ const ASSETS = [
   './app.js',
   './manifest.webmanifest',
   './icon.svg',
+  './icon-192.png',
+  './icon-512.png',
+  './apple-touch-icon.png',
   './vendor/react.production.min.js',
   './vendor/react-dom.production.min.js',
 ];

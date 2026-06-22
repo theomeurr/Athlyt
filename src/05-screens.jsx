@@ -73,21 +73,31 @@ function Meta({ icon, text }) {
 }
 
 /* ----------------------------------------------------------- Accueil */
-function HomeScreen({ data, actions }) {
+function HomeScreen({ data, actions, prefs }) {
   const t = useTheme();
   const hour = new Date().getHours();
   const greet = hour < 12 ? 'Bonjour' : hour < 18 ? 'Bon après-midi' : 'Bonsoir';
   const weekAgo = Date.now() - 7 * 864e5;
   const thisWeek = data.history.filter((h) => new Date(h.date).getTime() >= weekAgo);
-  const goalWk = 4;
-  const streak = 5;
+  const goalWk = (prefs && prefs.freq) || 4;
+  // série réelle : nb de jours consécutifs (jusqu'à aujourd'hui) avec ≥1 séance
+  const dayKeys = new Set(data.history.map((h) => new Date(h.date).toDateString()));
+  let streak = 0;
+  for (let i = 0; i < 366; i++) {
+    const d = new Date(); d.setHours(0, 0, 0, 0); d.setDate(d.getDate() - i);
+    if (dayKeys.has(d.toDateString())) streak++;
+    else if (i > 0) break; // une absence aujourd'hui (i=0) n'interrompt pas la série
+  }
   const suggested = data.sessions[0];
 
   return (
     <div style={{ paddingBottom: 16 }}>
       <ScreenHeader title={greet} sub="Prêt à te dépasser ?" trailing={
-        <span style={{ width: 42, height: 42, borderRadius: 99, background: t.fill, display: 'flex',
-          alignItems: 'center', justifyContent: 'center', color: t.ink, fontWeight: 800, fontSize: 16 }}>A</span>
+        <button onClick={() => actions.openSettings()} aria-label="Paramètres" style={{
+          width: 42, height: 42, borderRadius: 99, background: t.fill, border: 'none', cursor: 'pointer',
+          display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+          <Icon name="settings" size={21} stroke={t.ink} />
+        </button>
       } />
 
       <div style={{ padding: '14px 20px 0' }}>
@@ -106,7 +116,7 @@ function HomeScreen({ data, actions }) {
               {thisWeek.length >= goalWk ? 'Objectif atteint 💪' : `${goalWk - thisWeek.length} séance${goalWk - thisWeek.length > 1 ? 's' : ''} restante${goalWk - thisWeek.length > 1 ? 's' : ''}`}
             </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 8, fontSize: 13.5, color: t.sub, fontWeight: 600 }}>
-              <Icon name="flame" size={16} stroke="#F59E0B" /> Série de {streak} jours
+              <Icon name="flame" size={16} stroke="#F59E0B" /> {streak > 0 ? `Série de ${streak} jour${streak > 1 ? 's' : ''}` : 'Commence ta série'}
             </div>
           </div>
         </div>

@@ -5,6 +5,7 @@
   "private": true,
   "scripts": {
     "build": "node build.js",
+    "icons": "node build-icons.js",
     "serve": "python3 -m http.server 8000"
   },
   "keywords": [
@@ -19,6 +20,7 @@
   },
   "devDependencies": {
     "@babel/standalone": "^7.26.4",
-    "jsdom": "^29.1.1"
+    "jsdom": "^29.1.1",
+    "sharp": "^0.35.2"
   }
 }

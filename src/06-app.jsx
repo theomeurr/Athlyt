@@ -1,12 +1,21 @@
 // athlyt-app.jsx — application root.
-// Adapté du design Claude pour une vraie PWA plein écran :
-// le cadre « iPhone » de la maquette (IOSDevice) et le panneau d'édition (Tweaks)
-// sont retirés ; le reste de l'app du design est conservé tel quel.
+// Adapté du design Claude pour une vraie PWA plein écran : le cadre « iPhone »
+// de la maquette, le panneau d'édition et l'onboarding/connexion ont été retirés.
+// Les réglages de l'onboarding sont désormais dans l'écran Paramètres.
 
 const { useState, useEffect, useMemo } = React;
 
 const STORE = 'athlyt-v2';
-const ACCENT = '#1F6BFF'; // accent du design (modifiable)
+const ACCENT = '#1F6BFF'; // accent par défaut (modifiable dans Paramètres)
+const DEFAULT_PREFS = {
+  disciplines: ['force', 'vitesse'],
+  goal: 'explosivite',
+  level: 'Intermédiaire',
+  freq: 4,
+  reminders: false,
+  days: [1, 3, 5],
+  time: '18:30',
+};
 
 function hexA(hex, a) {
   const h = hex.replace('#', '');
@@ -28,9 +37,10 @@ function prefersDark() {
 function App() {
   const persisted = useMemo(loadStore, []);
   const [data, setData] = useState(() => persisted?.data || seedData());
-  const [onboarded, setOnboarded] = useState(() => persisted?.onboarded || false);
   const [tab, setTab] = useState(() => persisted?.tab || 'home');
-  const [dark] = useState(() => persisted?.dark ?? prefersDark());
+  const [dark, setDark] = useState(() => persisted?.dark ?? prefersDark());
+  const [accent, setAccent] = useState(() => persisted?.accent || ACCENT);
+  const [prefs, setPrefs] = useState(() => ({ ...DEFAULT_PREFS, ...(persisted?.prefs || {}) }));
 
   // overlays / sheets
   const [guidedId, setGuidedId] = useState(null);
@@ -38,9 +48,10 @@ function App() {
   const [editSessionId, setEditSessionId] = useState(null);
   const [exDetail, setExDetail] = useState(null);
   const [exEdit, setExEdit] = useState(undefined); // undefined = fermé, null = nouveau, obj = édition
+  const [settingsOpen, setSettingsOpen] = useState(false);
   const [toastMsg, setToastMsg] = useState(null);
 
-  const theme = useMemo(() => buildTheme(dark, ACCENT), [dark]);
+  const theme = useMemo(() => buildTheme(dark, accent), [dark, accent]);
 
   // recherche d'exercice exposée aux helpers d'écran
   useEffect(() => { window.__exLookup = (id) => data.exercises.find((e) => e.id === id); }, [data]);
@@ -48,8 +59,8 @@ function App() {
 
   // persistance
   useEffect(() => {
-    try { localStorage.setItem(STORE, JSON.stringify({ data, onboarded, tab, dark })); } catch (e) {}
-  }, [data, onboarded, tab, dark]);
+    try { localStorage.setItem(STORE, JSON.stringify({ data, tab, dark, accent, prefs })); } catch (e) {}
+  }, [data, tab, dark, accent, prefs]);
 
   // fond + couleur de barre système alignés sur le thème
   useEffect(() => {
@@ -77,19 +88,21 @@ function App() {
     setEditSessionId(s.id);
   };
   const addHistory = (h) => setData((d) => ({ ...d, history: [h, ...d.history] }));
+  const resetAll = () => { setData(seedData()); setTab('home'); toast('Données réinitialisées'); };
 
   const actions = {
     goTab: setTab,
     startGuided: (id) => setGuidedId(id),
     openSession: (id) => setEditSessionId(id),
     openTimer: (mode) => setTimerMode(mode),
+    openSettings: () => setSettingsOpen(true),
   };
 
   const guidedSession = guidedId && data.sessions.find((s) => s.id === guidedId);
   const editSession = editSessionId && data.sessions.find((s) => s.id === editSessionId);
 
   let screen;
-  if (tab === 'home') screen = <HomeScreen data={data} actions={actions} />;
+  if (tab === 'home') screen = <HomeScreen data={data} actions={actions} prefs={prefs} />;
   else if (tab === 'sessions') screen = <SessionsScreen data={data} actions={actions} onNew={newSession} />;
   else if (tab === 'exercises') screen = <ExercisesScreen data={data} onOpenExercise={setExDetail} onNew={() => setExEdit(null)} />;
   else if (tab === 'timer') screen = <TimerScreen onOpenTimer={actions.openTimer} />;
@@ -97,10 +110,10 @@ function App() {
 
   return (
     <ThemeCtx.Provider value={theme}>
-      <div style={{ position: 'relative', height: '100dvh', width: '100%', maxWidth: 460, margin: '0 auto',
+      <div className="app-shell" style={{ position: 'relative', width: '100%', maxWidth: 460, margin: '0 auto',
         background: theme.bg, color: theme.ink, overflow: 'hidden',
         boxShadow: theme.dark ? 'none' : '0 0 0 1px rgba(12,16,25,0.06)' }}>
-        <div key={tab} style={{ position: 'absolute', inset: 0, overflowY: 'auto', paddingBottom: 92, animation: 'athScreen .25s ease' }}>
+        <div key={tab} style={{ position: 'absolute', inset: 0, overflowY: 'auto', overscrollBehavior: 'contain', WebkitOverflowScrolling: 'touch', paddingBottom: 'calc(96px + env(safe-area-inset-bottom))', animation: 'athScreen .25s ease' }}>
           {screen}
         </div>
         <TabBar tab={tab} onTab={setTab} />
@@ -124,11 +137,9 @@ function App() {
         {exEdit !== undefined && (
           <ExerciseEditor exercise={exEdit} onSave={upsertExercise} onDelete={deleteExercise} onClose={() => setExEdit(undefined)} />
         )}
-
-        {!onboarded && (
-          <div style={{ position: 'absolute', inset: 0, zIndex: 120 }}>
-            <Onboarding onDone={() => { setOnboarded(true); setTab('home'); }} />
-          </div>
+        {settingsOpen && (
+          <SettingsScreen dark={dark} setDark={setDark} accent={accent} setAccent={setAccent}
+            prefs={prefs} setPrefs={setPrefs} onReset={resetAll} onClose={() => setSettingsOpen(false)} />
         )}
 
         {toastMsg && (
@@ -140,5 +151,3 @@ function App() {
     </ThemeCtx.Provider>
   );
 }
-
-ReactDOM.createRoot(document.getElementById('root')).render(<App />);
