@@ -4,66 +4,56 @@
 
 Compagnon de **préparation physique et athlétique**. Là où [Athelio](../Athelio) journalise *ce que tu as fait*, Athlyt s'occupe de *comment tu t'entraînes* : tu construis tes séances, tu les déroules en mode guidé avec chrono, et tu minutes tes intervalles.
 
-Orientation **polyvalente multisport** : Force · Vitesse · Pliométrie · Endurance · Gainage · Mobilité.
+PWA installable, hors-ligne, orientation **polyvalente multisport** : Force · Vitesse · Pliométrie · Endurance · Gainage · Mobilité.
 
-## Fonctionnalités (v1)
+## Écrans
 
-### 💪 Exercices
-- Bibliothèque d'exercices catégorisés (force, vitesse, pliométrie, endurance, gainage, mobilité)
-- Recherche + filtres par catégorie
-- Muscles ciblés et consignes d'exécution
-- Ajout / modification / suppression
+- **Accueil** — progression de la semaine (anneau), séance du jour recommandée, accès rapides, activité récente.
+- **Séances** — cartes de séances, création/édition (exos × séries × reps × charge × repos), démarrage en mode guidé.
+- **Exercices** — bibliothèque catégorisée, recherche + filtres, fiche exercice (muscles, consignes).
+- **Minuteur** — Tabata · Fractionné · EMOM · AMRAP (cadran, signaux sonores).
+- **Activité** — stats, graphe des séries par séance, historique.
+- **Séance guidée** — déroulé exercice par exercice, validation des séries, chrono de repos automatique, bilan (séries / durée / RPE).
+- **Onboarding** — premier lancement (disciplines, objectif, niveau, rappels).
 
-### 📋 Séances
-- Construis une séance : exercices × séries × reps × charge × repos
-- Réorganise les blocs, renomme, ajoute une note d'objectif
-- Deux séances d'exemple fournies au premier lancement
-
-### ▶️ Séance guidée
-- Déroule la séance exercice par exercice
-- Coche tes séries au fur et à mesure
-- **Chrono de repos automatique** après chaque série (avec +15 s / passer + signal sonore)
-- Barre de progression et bilan de fin (séries réalisées, durée, RPE)
-- Séance enregistrée dans l'historique
-
-### ⏱️ Minuteur d'intervalle
-- **Tabata** (20 s / 10 s × 8), **Fractionné** (effort/repos personnalisables), **EMOM**, **AMRAP**
-- Cadran circulaire, décompte de préparation, signaux sonores aux transitions
-
-### 📈 Historique
-- Séances réalisées datées, avec graphe des séries (Chart.js)
-
-## Roadmap (v2 envisagée)
-Tests & benchmarks athlétiques (sprint, détente, VMA, 1RM) · calculateurs (1RM, % charge, allures) · planning hebdo · charge d'entraînement & gestion de la fatigue · périodisation / affûtage · pont de données avec Athelio.
-
-## Lancer l'app
-
-Pas de build, pas de dépendance à installer.
-
-```bash
-# Option 1 : ouvrir directement
-open index.html
-
-# Option 2 : serveur local
-python3 -m http.server 8000
-# puis http://localhost:8000
-```
-
-Installable en **PWA** (écran d'accueil iOS/Android) et utilisable **hors-ligne**.
+Thème **clair/sombre** automatique (préférence système), accent bleu `#1F6BFF`.
 
 ## Stack
 
-- HTML, CSS, JavaScript (vanilla) — même socle qu'Athelio
-- [Chart.js](https://www.chartjs.org/) via CDN pour les graphiques
-- Web Audio API pour les bips du minuteur (aucun fichier audio)
-- `localStorage` pour la persistance — tes données restent sur ton appareil
-- Import / export JSON pour sauvegarde et portabilité
-- Service worker offline-first
+- **React 18** (UMD, vendorisé dans `vendor/` — aucune dépendance réseau au runtime).
+- Le design vient de **Claude Design** : composants dans `src/*.jsx` (styles inline).
+- `localStorage` pour la persistance — tes données restent sur ton appareil.
+- Service worker offline-first, Web Audio API pour les bips du minuteur.
 
-## Design
+Le visuel est issu d'une maquette React : le cadre « iPhone » de la maquette et le panneau d'édition ont été retirés pour en faire une vraie app plein écran.
 
-Le visuel (thème sombre + accent « volt ») est volontairement isolé dans `styles.css` pour être **re-designé facilement avec Claude Design** sans toucher à la logique (`app.js`).
+## Développement
+
+Aucun build n'est nécessaire pour **lancer** l'app (`app.js` est déjà transpilé et commité). Il faut seulement (re)builder après avoir édité `src/*.jsx`.
+
+```bash
+# Lancer (sans rien installer)
+python3 -m http.server 8000      # puis http://localhost:8000
+# ou : open index.html
+
+# Modifier le design puis régénérer app.js
+npm install                      # @babel/standalone (dev)
+npm run build                    # transpile src/*.jsx -> app.js
+```
+
+### Architecture des sources
+
+| Fichier | Rôle |
+|---|---|
+| `src/01-data.jsx` | thème (clair/sombre), catégories, données seed, icônes, anneau `Ring`, helpers, audio |
+| `src/02-onboarding.jsx` | flux de premier lancement + primitives (Switch, Segmented…) |
+| `src/03-overlays.jsx` | séance guidée + minuteur d'intervalle |
+| `src/04-editors.jsx` | éditeur d'exercice, éditeur de séance, sélecteur d'exercice |
+| `src/05-screens.jsx` | écrans principaux + tab bar |
+| `src/06-app.jsx` | racine de l'app (état, thème, navigation) — adaptée de la maquette |
+
+`build.js` concatène et transpile ces fichiers en `app.js`. `vendor/` contient React/ReactDOM.
 
 ## Données
 
-Au premier lancement, l'app charge une bibliothèque d'exercices et deux séances d'exemple. Utilise **Réinitialiser** dans la barre latérale pour repartir de zéro (exporte d'abord si besoin).
+Au premier lancement : une bibliothèque d'exercices et trois séances d'exemple. Les données vivent dans `localStorage` (`athlyt-v2`).

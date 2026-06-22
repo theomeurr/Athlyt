@@ -1,0 +1,24 @@
+{
+  "name": "athlyt",
+  "version": "1.0.0",
+  "description": "Athlyt — préparation physique & athlétique (PWA)",
+  "private": true,
+  "scripts": {
+    "build": "node build.js",
+    "serve": "python3 -m http.server 8000"
+  },
+  "keywords": [
+    "pwa",
+    "fitness",
+    "training"
+  ],
+  "license": "ISC",
+  "dependencies": {
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1"
+  },
+  "devDependencies": {
+    "@babel/standalone": "^7.26.4",
+    "jsdom": "^29.1.1"
+  }
+}

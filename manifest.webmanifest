@@ -1,5 +1,5 @@
 {
-  "name": "Athlyt — Ta prépa physique & athlétique",
+  "name": "Athlyt — Prépa physique & athlétique",
   "short_name": "Athlyt",
   "description": "Construis tes séances, déroule-les en mode guidé avec chrono, et minute tes intervalles (Tabata, EMOM, AMRAP).",
   "lang": "fr",
@@ -7,20 +7,14 @@
   "scope": "./",
   "display": "standalone",
   "orientation": "portrait-primary",
-  "background_color": "#0a0d13",
-  "theme_color": "#0a0d13",
+  "background_color": "#F3F4F7",
+  "theme_color": "#F3F4F7",
   "icons": [
     {
       "src": "icon.svg",
       "sizes": "any",
       "type": "image/svg+xml",
-      "purpose": "any"
-    },
-    {
-      "src": "icon.svg",
-      "sizes": "any",
-      "type": "image/svg+xml",
-      "purpose": "maskable"
+      "purpose": "any maskable"
     }
   ]
 }

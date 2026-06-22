@@ -1,5 +1,5 @@
 // Athlyt — service worker (offline-first)
-const CACHE = 'athlyt-v1';
+const CACHE = 'athlyt-v2';
 const ASSETS = [
   './',
   './index.html',
@@ -7,7 +7,8 @@ const ASSETS = [
   './app.js',
   './manifest.webmanifest',
   './icon.svg',
-  'https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js',
+  './vendor/react.production.min.js',
+  './vendor/react-dom.production.min.js',
 ];
 
 self.addEventListener('install', (e) => {
@@ -27,7 +28,8 @@ self.addEventListener('activate', (e) => {
 self.addEventListener('fetch', (e) => {
   const req = e.request;
   if (req.method !== 'GET') return;
-  const url = req.url;
+  const url = new URL(req.url);
+  const sameOrigin = url.origin === self.location.origin;
 
   // Navigation : réseau d'abord, fallback cache (l'app reste dispo hors-ligne)
   if (req.mode === 'navigate') {
@@ -41,9 +43,18 @@ self.addEventListener('fetch', (e) => {
     return;
   }
 
+  // Librairies vendor (figées) : cache d'abord
+  if (sameOrigin && url.pathname.includes('/vendor/')) {
+    e.respondWith(caches.match(req).then((c) => c || fetch(req).then((res) => {
+      const copy = res.clone();
+      caches.open(CACHE).then((cc) => cc.put(req, copy)).catch(() => {});
+      return res;
+    })));
+    return;
+  }
+
   // Code de l'app (même origine) : réseau d'abord, fallback cache (sinon les MAJ ne passent jamais)
-  const sameOrigin = new URL(url).origin === self.location.origin;
-  if (sameOrigin && /\.(js|css|html|webmanifest|svg)(\?.*)?$/i.test(url)) {
+  if (sameOrigin && /\.(js|css|html|webmanifest|svg)(\?.*)?$/i.test(url.pathname)) {
     e.respondWith(
       fetch(req).then((res) => {
         const copy = res.clone();
@@ -54,15 +65,6 @@ self.addEventListener('fetch', (e) => {
     return;
   }
 
-  // Reste (CDN figé…) : cache d'abord, sinon réseau (et on met en cache au passage)
-  e.respondWith(
-    caches.match(req).then((cached) => {
-      if (cached) return cached;
-      return fetch(req).then((res) => {
-        const copy = res.clone();
-        caches.open(CACHE).then((c) => c.put(req, copy)).catch(() => {});
-        return res;
-      }).catch(() => cached);
-    })
-  );
+  // Reste : cache d'abord, sinon réseau
+  e.respondWith(caches.match(req).then((c) => c || fetch(req)));
 });
