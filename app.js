@@ -4851,6 +4851,42 @@ Trunk
 Prone Cobra — 2 x 60 sec chaque côté`
 }];
 
+/* ----------------------------------------------------- OCR (Tesseract, local) */
+// Chargé paresseusement : les ~9 Mo d'assets ne sont récupérés qu'à la 1re photo,
+// puis mis en cache par le service worker (dispo hors-ligne ensuite).
+function loadTesseract() {
+  if (window.Tesseract) return Promise.resolve(window.Tesseract);
+  return new Promise((resolve, reject) => {
+    const s = document.createElement('script');
+    s.src = new URL('vendor/tesseract/tesseract.min.js', location.href).href;
+    s.onload = () => resolve(window.Tesseract);
+    s.onerror = () => reject(new Error('tesseract load failed'));
+    document.head.appendChild(s);
+  });
+}
+async function runOCR(file, onProgress) {
+  const T = await loadTesseract();
+  const base = new URL('vendor/tesseract/', location.href).href;
+  const worker = await T.createWorker('eng', 1, {
+    workerPath: base + 'worker.min.js',
+    corePath: base,
+    langPath: base + 'lang',
+    logger: m => {
+      if (m.status === 'recognizing text' && onProgress) onProgress(Math.round((m.progress || 0) * 100));
+    }
+  });
+  try {
+    const {
+      data: {
+        text
+      }
+    } = await worker.recognize(file);
+    return text;
+  } finally {
+    await worker.terminate();
+  }
+}
+
 /* ----------------------------------------------------- Écran d'import */
 function ImportScreen({
   existing = [],
@@ -4872,6 +4908,49 @@ function ImportScreen({
     setExcluded(new Set());
   };
 
+  // OCR photo
+  const fileRef = React.useRef(null);
+  const [ocr, setOcr] = React.useState({
+    status: 'idle',
+    prog: 0,
+    error: null
+  });
+  const onPickImage = async file => {
+    if (!file) return;
+    setOcr({
+      status: 'loading',
+      prog: 0,
+      error: null
+    });
+    try {
+      const text = await runOCR(file, p => setOcr(o => ({
+        ...o,
+        prog: p
+      })));
+      if (!text || !text.trim()) {
+        setOcr({
+          status: 'error',
+          prog: 0,
+          error: 'Aucun texte détecté sur l’image.'
+        });
+        return;
+      }
+      loadText(text);
+      setOcr({
+        status: 'idle',
+        prog: 0,
+        error: null
+      });
+      setTab('text');
+    } catch (e) {
+      setOcr({
+        status: 'error',
+        prog: 0,
+        error: 'Lecture impossible. Réessaie avec une capture nette, ou colle le texte.'
+      });
+    }
+  };
+
   // regroupe l'aperçu par section, dans l'ordre d'apparition
   const groups = [];
   parsed.items.forEach((it, i) => {
@@ -4889,7 +4968,7 @@ function ImportScreen({
       i
     });
   });
-  const TABS = [['text', 'Texte', 'text'], ['template', 'Modèle', 'scan']];
+  const TABS = [['text', 'Texte', 'text'], ['photo', 'Photo', 'camera'], ['template', 'Modèle', 'scan']];
   return /*#__PURE__*/React.createElement("div", {
     style: {
       position: 'absolute',
@@ -4973,7 +5052,100 @@ function ImportScreen({
       lineHeight: 1.5,
       fontSize: 15
     }
-  }), tab === 'template' && /*#__PURE__*/React.createElement("div", {
+  }), tab === 'photo' && /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("input", {
+    ref: fileRef,
+    type: "file",
+    accept: "image/*",
+    hidden: true,
+    onChange: e => onPickImage(e.target.files && e.target.files[0])
+  }), ocr.status === 'loading' ? /*#__PURE__*/React.createElement("div", {
+    style: {
+      textAlign: 'center',
+      padding: '30px 10px'
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'inline-flex'
+    }
+  }, /*#__PURE__*/React.createElement(Ring, {
+    size: 84,
+    stroke: 9,
+    value: ocr.prog / 100,
+    gradient: [t.energy1, t.energy2],
+    track: t.fill
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 20,
+      fontWeight: 800,
+      color: t.ink,
+      fontVariantNumeric: 'tabular-nums'
+    }
+  }, ocr.prog, "%"))), /*#__PURE__*/React.createElement("div", {
+    style: {
+      marginTop: 16,
+      fontSize: 15,
+      fontWeight: 640,
+      color: t.ink
+    }
+  }, "Lecture de la capture\u2026"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      marginTop: 4,
+      fontSize: 13,
+      color: t.sub
+    }
+  }, "Sur ton appareil, hors-ligne")) : /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("button", {
+    onClick: () => fileRef.current && fileRef.current.click(),
+    style: {
+      width: '100%',
+      cursor: 'pointer',
+      border: `1.5px dashed ${t.lineStrong}`,
+      background: t.surface,
+      color: t.ink,
+      borderRadius: 18,
+      padding: '28px 20px',
+      display: 'flex',
+      flexDirection: 'column',
+      alignItems: 'center',
+      gap: 10
+    }
+  }, /*#__PURE__*/React.createElement("span", {
+    style: {
+      width: 52,
+      height: 52,
+      borderRadius: 15,
+      background: t.accentSoft,
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center'
+    }
+  }, /*#__PURE__*/React.createElement(Icon, {
+    name: "camera",
+    size: 26,
+    stroke: t.accent
+  })), /*#__PURE__*/React.createElement("span", {
+    style: {
+      fontSize: 16,
+      fontWeight: 700
+    }
+  }, "Choisir une capture"), /*#__PURE__*/React.createElement("span", {
+    style: {
+      fontSize: 13,
+      color: t.sub
+    }
+  }, "Photo ou capture d\u2019\xE9cran d\u2019une s\xE9ance")), ocr.error && /*#__PURE__*/React.createElement("p", {
+    style: {
+      fontSize: 13.5,
+      color: '#FF5A5F',
+      marginTop: 12
+    }
+  }, ocr.error), /*#__PURE__*/React.createElement("p", {
+    style: {
+      fontSize: 13,
+      color: t.faint,
+      lineHeight: 1.5,
+      marginTop: 12
+    }
+  }, "Le texte est extrait sur ton appareil (hors-ligne), puis tu le corriges avant l\u2019ajout. Le 1\u1D49\u02B3 usage t\xE9l\xE9charge le moteur OCR (~9 Mo), ensuite c\u2019est instantan\xE9."))), tab === 'template' && /*#__PURE__*/React.createElement("div", {
     style: {
       display: 'flex',
       flexDirection: 'column',

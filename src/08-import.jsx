@@ -108,6 +108,36 @@ Prone Cobra — 2 x 60 sec chaque côté`,
   },
 ];
 
+/* ----------------------------------------------------- OCR (Tesseract, local) */
+// Chargé paresseusement : les ~9 Mo d'assets ne sont récupérés qu'à la 1re photo,
+// puis mis en cache par le service worker (dispo hors-ligne ensuite).
+function loadTesseract() {
+  if (window.Tesseract) return Promise.resolve(window.Tesseract);
+  return new Promise((resolve, reject) => {
+    const s = document.createElement('script');
+    s.src = new URL('vendor/tesseract/tesseract.min.js', location.href).href;
+    s.onload = () => resolve(window.Tesseract);
+    s.onerror = () => reject(new Error('tesseract load failed'));
+    document.head.appendChild(s);
+  });
+}
+async function runOCR(file, onProgress) {
+  const T = await loadTesseract();
+  const base = new URL('vendor/tesseract/', location.href).href;
+  const worker = await T.createWorker('eng', 1, {
+    workerPath: base + 'worker.min.js',
+    corePath: base,
+    langPath: base + 'lang',
+    logger: (m) => { if (m.status === 'recognizing text' && onProgress) onProgress(Math.round((m.progress || 0) * 100)); },
+  });
+  try {
+    const { data: { text } } = await worker.recognize(file);
+    return text;
+  } finally {
+    await worker.terminate();
+  }
+}
+
 /* ----------------------------------------------------- Écran d'import */
 function ImportScreen({ existing = [], onImport, onClose }) {
   const t = useTheme();
@@ -123,6 +153,23 @@ function ImportScreen({ existing = [], onImport, onClose }) {
 
   const loadText = (v) => { setText(v); setNameEdit(null); setExcluded(new Set()); };
 
+  // OCR photo
+  const fileRef = React.useRef(null);
+  const [ocr, setOcr] = React.useState({ status: 'idle', prog: 0, error: null });
+  const onPickImage = async (file) => {
+    if (!file) return;
+    setOcr({ status: 'loading', prog: 0, error: null });
+    try {
+      const text = await runOCR(file, (p) => setOcr((o) => ({ ...o, prog: p })));
+      if (!text || !text.trim()) { setOcr({ status: 'error', prog: 0, error: 'Aucun texte détecté sur l’image.' }); return; }
+      loadText(text);
+      setOcr({ status: 'idle', prog: 0, error: null });
+      setTab('text');
+    } catch (e) {
+      setOcr({ status: 'error', prog: 0, error: 'Lecture impossible. Réessaie avec une capture nette, ou colle le texte.' });
+    }
+  };
+
   // regroupe l'aperçu par section, dans l'ordre d'apparition
   const groups = [];
   parsed.items.forEach((it, i) => {
@@ -132,7 +179,7 @@ function ImportScreen({ existing = [], onImport, onClose }) {
     g.list.push({ it, i });
   });
 
-  const TABS = [['text', 'Texte', 'text'], ['template', 'Modèle', 'scan']];
+  const TABS = [['text', 'Texte', 'text'], ['photo', 'Photo', 'camera'], ['template', 'Modèle', 'scan']];
 
   return (
     <div style={{ position: 'absolute', inset: 0, zIndex: 115, background: t.bg, display: 'flex', flexDirection: 'column' }}>
@@ -158,6 +205,38 @@ function ImportScreen({ existing = [], onImport, onClose }) {
           <textarea value={text} onChange={(e) => loadText(e.target.value)} autoFocus
             placeholder={"Colle ou écris ta séance, ex :\n\nStrength\nFloor Press — 3 x 10\nFacepulls — 3 x 12\n\nTrunk\nProne Cobra — 2 x 60 sec"}
             style={{ ...inputStyle(t), minHeight: 150, resize: 'vertical', lineHeight: 1.5, fontSize: 15 }} />
+        )}
+
+        {tab === 'photo' && (
+          <div>
+            <input ref={fileRef} type="file" accept="image/*" hidden onChange={(e) => onPickImage(e.target.files && e.target.files[0])} />
+            {ocr.status === 'loading' ? (
+              <div style={{ textAlign: 'center', padding: '30px 10px' }}>
+                <div style={{ display: 'inline-flex' }}>
+                  <Ring size={84} stroke={9} value={ocr.prog / 100} gradient={[t.energy1, t.energy2]} track={t.fill}>
+                    <div style={{ fontSize: 20, fontWeight: 800, color: t.ink, fontVariantNumeric: 'tabular-nums' }}>{ocr.prog}%</div>
+                  </Ring>
+                </div>
+                <div style={{ marginTop: 16, fontSize: 15, fontWeight: 640, color: t.ink }}>Lecture de la capture…</div>
+                <div style={{ marginTop: 4, fontSize: 13, color: t.sub }}>Sur ton appareil, hors-ligne</div>
+              </div>
+            ) : (
+              <>
+                <button onClick={() => fileRef.current && fileRef.current.click()} style={{ width: '100%', cursor: 'pointer',
+                  border: `1.5px dashed ${t.lineStrong}`, background: t.surface, color: t.ink, borderRadius: 18,
+                  padding: '28px 20px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 10 }}>
+                  <span style={{ width: 52, height: 52, borderRadius: 15, background: t.accentSoft, display: 'flex',
+                    alignItems: 'center', justifyContent: 'center' }}><Icon name="camera" size={26} stroke={t.accent} /></span>
+                  <span style={{ fontSize: 16, fontWeight: 700 }}>Choisir une capture</span>
+                  <span style={{ fontSize: 13, color: t.sub }}>Photo ou capture d’écran d’une séance</span>
+                </button>
+                {ocr.error && <p style={{ fontSize: 13.5, color: '#FF5A5F', marginTop: 12 }}>{ocr.error}</p>}
+                <p style={{ fontSize: 13, color: t.faint, lineHeight: 1.5, marginTop: 12 }}>
+                  Le texte est extrait sur ton appareil (hors-ligne), puis tu le corriges avant l’ajout. Le 1ᵉʳ usage télécharge le moteur OCR (~9 Mo), ensuite c’est instantané.
+                </p>
+              </>
+            )}
+          </div>
         )}
 
         {tab === 'template' && (

@@ -15,7 +15,8 @@ PWA installable, hors-ligne, orientation **polyvalente multisport** : Force · V
 - **Activité** — stats, graphe des séries par séance, historique.
 - **Séance guidée** — déroulé exercice par exercice, validation des séries, chrono de repos automatique, bilan (séries / durée / RPE).
 - **Paramètres** (icône ⚙️ sur l'Accueil) — apparence (thème clair/sombre, accent), entraînement (disciplines, objectif, niveau, séances/semaine), rappels, réinitialisation des données.
-- **Importer une séance** (icône ⛶ sur Séances) — colle/écris une séance ou charge un **modèle** ; le parseur (`parseWorkout`) reconnaît `Nom — séries x reps`, les préfixes `1.A.`, et les sections (Plyometrics, Strength, Trunk…), infère la catégorie, puis crée les exercices manquants (dédoublonnés) + la séance.
+- **Importer une séance** (icône ⛶ sur Séances) — trois onglets : **Texte** (colle/écris), **Photo** (OCR), **Modèle**. Le parseur (`parseWorkout`) reconnaît `Nom — séries x reps`, les préfixes `1.A.`, et les sections (Plyometrics, Strength, Trunk…), infère la catégorie, puis crée les exercices manquants (dédoublonnés) + la séance.
+  - **OCR photo** : lecture d'une capture **sur l'appareil, hors-ligne** via Tesseract.js (vendorisé dans `vendor/tesseract/`, ~9,5 Mo, chargé au 1ᵉʳ usage puis mis en cache). Le texte extrait est éditable avant l'ajout.
 
 Thème **clair/sombre** (préférence système par défaut, réglable dans Paramètres), accent bleu `#1F6BFF`.
 
@@ -41,6 +42,7 @@ python3 -m http.server 8000      # puis http://localhost:8000
 npm install                      # outils de dev (babel, sharp…)
 npm run build                    # transpile src/*.jsx -> app.js
 npm run icons                    # régénère les icônes PNG depuis le SVG
+npm run vendor:ocr               # re-copie les assets Tesseract dans vendor/tesseract/
 ```
 
 ### Architecture des sources
