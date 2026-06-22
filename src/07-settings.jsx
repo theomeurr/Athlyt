@@ -145,8 +145,8 @@ function SettingsScreen({ dark, setDark, accent, setAccent, prefs, setPrefs, onR
               <Icon name="close" size={18} sw={2.4} stroke="#FF5A5F" />
             </span>
             <div style={{ flex: 1 }}>
-              <div style={{ fontSize: 16, fontWeight: 640, color: '#FF5A5F' }}>Réinitialiser les données</div>
-              <div style={{ fontSize: 13, color: t.sub, marginTop: 1 }}>Restaure les données d’exemple</div>
+              <div style={{ fontSize: 16, fontWeight: 640, color: '#FF5A5F' }}>Tout effacer</div>
+              <div style={{ fontSize: 13, color: t.sub, marginTop: 1 }}>Supprime séances, exercices et historique</div>
             </div>
           </button>
         </SettingsSection>
@@ -155,15 +155,15 @@ function SettingsScreen({ dark, setDark, accent, setAccent, prefs, setPrefs, onR
       </div>
 
       {confirm && (
-        <Sheet title="Réinitialiser ?" onClose={() => setConfirm(false)}>
+        <Sheet title="Tout effacer ?" onClose={() => setConfirm(false)}>
           <p style={{ margin: '0 0 18px', fontSize: 15, lineHeight: 1.5, color: t.sub }}>
-            Tes séances, exercices et historique seront remplacés par les données d’exemple. Action irréversible.
+            Tes séances, exercices et historique seront définitivement supprimés. Action irréversible.
           </p>
           <div style={{ display: 'flex', gap: 10 }}>
             <button onClick={() => setConfirm(false)} style={{ flex: 1, border: `1px solid ${t.line}`, cursor: 'pointer',
               background: t.surface, color: t.ink, borderRadius: 14, padding: '15px', fontSize: 16, fontWeight: 680 }}>Annuler</button>
             <button onClick={() => { onReset(); setConfirm(false); onClose(); }} style={{ flex: 1, border: 'none', cursor: 'pointer',
-              background: '#FF5A5F', color: '#fff', borderRadius: 14, padding: '15px', fontSize: 16, fontWeight: 700 }}>Réinitialiser</button>
+              background: '#FF5A5F', color: '#fff', borderRadius: 14, padding: '15px', fontSize: 16, fontWeight: 700 }}>Tout effacer</button>
           </div>
         </Sheet>
       )}

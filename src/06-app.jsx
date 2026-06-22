@@ -5,7 +5,7 @@
 
 const { useState, useEffect, useMemo } = React;
 
-const STORE = 'athlyt-v2';
+const STORE = 'athlyt-v3'; // bump = on repart d'un état vierge (purge des données de test)
 const ACCENT = '#1F6BFF'; // accent par défaut (modifiable dans Paramètres)
 const DEFAULT_PREFS = {
   disciplines: ['force', 'vitesse'],
@@ -88,7 +88,7 @@ function App() {
     setEditSessionId(s.id);
   };
   const addHistory = (h) => setData((d) => ({ ...d, history: [h, ...d.history] }));
-  const resetAll = () => { setData(seedData()); setTab('home'); toast('Données réinitialisées'); };
+  const resetAll = () => { setData(seedData()); setTab('home'); toast('Données effacées'); };
 
   const actions = {
     goTab: setTab,

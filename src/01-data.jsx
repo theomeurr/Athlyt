@@ -72,67 +72,9 @@ let _id = 0;
 const uid = () => 'x' + Date.now().toString(36) + (++_id).toString(36);
 
 function seedData() {
+  // Démarrage vierge : aucune donnée de test (ni exercices, ni séances, ni historique).
   _id = 0;
-  const E = (name, category, muscles, instructions) => ({ id: uid(), name, category, muscles, instructions });
-  const exercises = [
-    E('Squat', 'force', 'Quadriceps · Fessiers', 'Dos gainé, descends à la parallèle, pousse sur les talons.'),
-    E('Soulevé de terre', 'force', 'Chaîne postérieure', 'Dos plat, barre près des tibias, pousse le sol.'),
-    E('Développé couché', 'force', 'Pectoraux · Triceps', 'Omoplates serrées, barre au niveau des pectoraux.'),
-    E('Tractions', 'force', 'Dos · Biceps', 'Amplitude complète, menton au-dessus de la barre.'),
-    E('Hip thrust', 'force', 'Fessiers', 'Pousse les hanches, verrouille 1 s en haut.'),
-    E('Fentes', 'force', 'Quadriceps · Fessiers', 'Grand pas, genou arrière vers le sol, buste droit.'),
-    E('Sprint 30 m', 'vitesse', 'Globale', 'Départ explosif, accélère, relâche en fin de course.'),
-    E('Montées de genoux', 'vitesse', 'Fléchisseurs hanche', 'Fréquence haute, genoux à hauteur de hanche.'),
-    E('Démarrages 10 m', 'vitesse', 'Globale', 'Position basse, 3 appuis explosifs puis relâche.'),
-    E('Squat sauté', 'plio', 'Quadriceps · Mollets', 'Descends puis saute haut, réception amortie.'),
-    E('Box jumps', 'plio', 'Globale', 'Saute sur la box, réception douce, redescends contrôlé.'),
-    E('Drop jump', 'plio', 'Mollets · Quadriceps', 'Descends de la box, rebondis immédiatement.'),
-    E('Course continue', 'endurance', 'Cardio', 'Allure régulière, respiration maîtrisée.'),
-    E('Fractionné 30/30', 'endurance', 'Cardio', '30 s rapide / 30 s lent, allure constante.'),
-    E('Corde à sauter', 'endurance', 'Mollets · Cardio', 'Petits sauts, poignets qui tournent, rythme régulier.'),
-    E('Planche', 'gainage', 'Abdos profonds', 'Corps aligné, fessiers serrés, ne creuse pas le dos.'),
-    E('Hollow hold', 'gainage', 'Abdos', 'Bas du dos plaqué au sol, bras et jambes tendus.'),
-    E('Mountain climbers', 'gainage', 'Abdos · Cardio', 'Position pompe, ramène les genoux en rythme.'),
-    E('Mobilité hanches', 'mobilite', 'Hanches', '90/90 ou fentes mobiles, va chercher l’amplitude.'),
-    E('Cat-cow', 'mobilite', 'Colonne', 'Alterne dos rond / dos creux avec la respiration.'),
-  ];
-  const find = (n) => exercises.find((e) => e.name === n).id;
-  const B = (name, sets, reps, load, rest) => ({ exerciseId: find(name), sets, reps, load, rest });
-
-  const sessions = [
-    { id: uid(), name: 'Pleine puissance', note: 'Force + explosivité bas du corps', accent: 'force', blocks: [
-      B('Mobilité hanches', 1, '5 / côté', 'PdC', 30),
-      B('Squat', 4, '5', '80 %', 150),
-      B('Squat sauté', 4, '6', 'PdC', 120),
-      B('Hip thrust', 3, '8', '60 kg', 120),
-      B('Planche', 3, '45 s', 'PdC', 60),
-    ] },
-    { id: uid(), name: 'Vitesse & gainage', note: 'Vivacité et zone de force centrale', accent: 'vitesse', blocks: [
-      B('Montées de genoux', 3, '20 s', 'PdC', 45),
-      B('Sprint 30 m', 6, '1', 'max', 90),
-      B('Box jumps', 4, '5', 'PdC', 90),
-      B('Mountain climbers', 3, '30 s', 'PdC', 45),
-      B('Hollow hold', 3, '30 s', 'PdC', 45),
-    ] },
-    { id: uid(), name: 'Full body express', note: '30 min, tout le corps', accent: 'endurance', blocks: [
-      B('Squat', 3, '10', 'PdC', 60),
-      B('Tractions', 3, '6', 'PdC', 90),
-      B('Développé couché', 3, '10', '40 kg', 90),
-      B('Corde à sauter', 3, '60 s', 'PdC', 45),
-    ] },
-  ];
-
-  const today = new Date();
-  const day = (n) => new Date(today.getTime() - n * 864e5).toISOString();
-  const history = [
-    { id: uid(), name: 'Vitesse & gainage', date: day(1), durationSec: 2640, totalSets: 19, doneSets: 19, rpe: 8 },
-    { id: uid(), name: 'Pleine puissance', date: day(3), durationSec: 3180, totalSets: 15, doneSets: 14, rpe: 9 },
-    { id: uid(), name: 'Full body express', date: day(5), durationSec: 1860, totalSets: 12, doneSets: 12, rpe: 6 },
-    { id: uid(), name: 'Pleine puissance', date: day(8), durationSec: 3060, totalSets: 15, doneSets: 15, rpe: 8 },
-    { id: uid(), name: 'Vitesse & gainage', date: day(10), durationSec: 2520, totalSets: 19, doneSets: 17, rpe: 7 },
-  ];
-
-  return { exercises, sessions, history };
+  return { exercises: [], sessions: [], history: [] };
 }
 
 /* ----------------------------------------------------------------- Helpers */

@@ -121,33 +121,50 @@ function HomeScreen({ data, actions, prefs }) {
           </div>
         </div>
 
-        {/* suggested session */}
-        <div style={{ margin: '22px 0 10px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <h2 style={sectionTitle(t)}>Séance du jour</h2>
-          <button onClick={() => actions.goTab('sessions')} style={linkBtn(t)}>Tout voir</button>
-        </div>
-        {suggested && (
-          <div style={{ borderRadius: 24, overflow: 'hidden', background: t.ink, position: 'relative', boxShadow: t.shadow }}>
-            <div style={{ position: 'absolute', inset: 0, background: `radial-gradient(120% 120% at 85% 0%, ${t.accent}55, transparent 60%)` }} />
-            <div style={{ position: 'relative', padding: 20 }}>
-              <span style={{ display: 'inline-flex', alignItems: 'center', gap: 7, background: 'rgba(255,255,255,0.14)',
-                color: '#fff', borderRadius: 99, padding: '5px 11px', fontSize: 12.5, fontWeight: 700 }}>
-                <Icon name="bolt" size={14} stroke="#fff" /> RECOMMANDÉ
-              </span>
-              <div style={{ fontSize: 25, fontWeight: 800, color: '#fff', marginTop: 14, letterSpacing: -0.5 }}>{suggested.name}</div>
-              <div style={{ fontSize: 14.5, color: 'rgba(255,255,255,0.7)', marginTop: 3 }}>{suggested.note}</div>
-              <div style={{ display: 'flex', gap: 18, marginTop: 16 }}>
-                <DarkMeta value={suggested.blocks.length} label="exercices" />
-                <DarkMeta value={totalSets(suggested)} label="séries" />
-                <DarkMeta value={`~${estMinutes(suggested)}'`} label="durée" />
+        {/* suggested session (ou invite si aucune séance) */}
+        {suggested ? (
+          <>
+            <div style={{ margin: '22px 0 10px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <h2 style={sectionTitle(t)}>Séance du jour</h2>
+              <button onClick={() => actions.goTab('sessions')} style={linkBtn(t)}>Tout voir</button>
+            </div>
+            <div style={{ borderRadius: 24, overflow: 'hidden', background: t.ink, position: 'relative', boxShadow: t.shadow }}>
+              <div style={{ position: 'absolute', inset: 0, background: `radial-gradient(120% 120% at 85% 0%, ${t.accent}55, transparent 60%)` }} />
+              <div style={{ position: 'relative', padding: 20 }}>
+                <span style={{ display: 'inline-flex', alignItems: 'center', gap: 7, background: 'rgba(255,255,255,0.14)',
+                  color: '#fff', borderRadius: 99, padding: '5px 11px', fontSize: 12.5, fontWeight: 700 }}>
+                  <Icon name="bolt" size={14} stroke="#fff" /> RECOMMANDÉ
+                </span>
+                <div style={{ fontSize: 25, fontWeight: 800, color: '#fff', marginTop: 14, letterSpacing: -0.5 }}>{suggested.name}</div>
+                <div style={{ fontSize: 14.5, color: 'rgba(255,255,255,0.7)', marginTop: 3 }}>{suggested.note}</div>
+                <div style={{ display: 'flex', gap: 18, marginTop: 16 }}>
+                  <DarkMeta value={suggested.blocks.length} label="exercices" />
+                  <DarkMeta value={totalSets(suggested)} label="séries" />
+                  <DarkMeta value={`~${estMinutes(suggested)}'`} label="durée" />
+                </div>
+                <button onClick={() => actions.startGuided(suggested.id)} style={{ marginTop: 18, width: '100%', border: 'none',
+                  cursor: 'pointer', borderRadius: 14, padding: '14px', background: '#fff', color: t.ink, fontSize: 16, fontWeight: 720,
+                  display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
+                  <Icon name="play" size={19} stroke={t.ink} /> Démarrer la séance
+                </button>
               </div>
-              <button onClick={() => actions.startGuided(suggested.id)} style={{ marginTop: 18, width: '100%', border: 'none',
-                cursor: 'pointer', borderRadius: 14, padding: '14px', background: '#fff', color: t.ink, fontSize: 16, fontWeight: 720,
-                display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
-                <Icon name="play" size={19} stroke={t.ink} /> Démarrer la séance
+            </div>
+          </>
+        ) : (
+          <>
+            <h2 style={{ ...sectionTitle(t), margin: '22px 0 10px' }}>Commencer</h2>
+            <div style={{ background: t.surface, border: `1px solid ${t.line}`, borderRadius: 24, padding: '24px 20px', textAlign: 'center', boxShadow: t.shadowSm }}>
+              <span style={{ width: 52, height: 52, borderRadius: 15, background: t.accentSoft, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', marginBottom: 12 }}>
+                <Icon name="dumbbell" size={26} stroke={t.accent} />
+              </span>
+              <div style={{ fontSize: 17, fontWeight: 740, color: t.ink }}>Crée ta première séance</div>
+              <div style={{ fontSize: 14, color: t.sub, marginTop: 4, lineHeight: 1.45 }}>Ajoute des exercices, puis lance-toi en mode guidé.</div>
+              <button onClick={() => actions.goTab('sessions')} style={{ marginTop: 16, border: 'none', cursor: 'pointer', borderRadius: 14,
+                padding: '12px 22px', background: t.accent, color: '#fff', fontSize: 15.5, fontWeight: 680, boxShadow: '0 6px 16px rgba(31,107,255,0.26)' }}>
+                Nouvelle séance
               </button>
             </div>
-          </div>
+          </>
         )}
 
         {/* quick actions */}
@@ -248,7 +265,9 @@ function ExercisesScreen({ data, onOpenExercise, onNew }) {
       </div>
       <div style={{ padding: '10px 20px 0' }}>
         {items.length === 0 ? (
-          <Empty icon="search" title="Aucun résultat" text="Modifie ta recherche ou ajoute un exercice." />
+          data.exercises.length === 0
+            ? <Empty icon="dumbbell" title="Aucun exercice" text="Ajoute ton premier mouvement à ta bibliothèque." action="Nouvel exercice" onAction={onNew} />
+            : <Empty icon="search" title="Aucun résultat" text="Modifie ta recherche ou essaie une autre catégorie." />
         ) : (
           items.map((ex) => {
             const c = catById(ex.category);

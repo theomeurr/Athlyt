@@ -93,89 +93,12 @@ let _id = 0;
 // 0 et un nouvel élément réutilise un ID déjà présent (collision → bugs d'édition).
 const uid = () => 'x' + Date.now().toString(36) + (++_id).toString(36);
 function seedData() {
+  // Démarrage vierge : aucune donnée de test (ni exercices, ni séances, ni historique).
   _id = 0;
-  const E = (name, category, muscles, instructions) => ({
-    id: uid(),
-    name,
-    category,
-    muscles,
-    instructions
-  });
-  const exercises = [E('Squat', 'force', 'Quadriceps · Fessiers', 'Dos gainé, descends à la parallèle, pousse sur les talons.'), E('Soulevé de terre', 'force', 'Chaîne postérieure', 'Dos plat, barre près des tibias, pousse le sol.'), E('Développé couché', 'force', 'Pectoraux · Triceps', 'Omoplates serrées, barre au niveau des pectoraux.'), E('Tractions', 'force', 'Dos · Biceps', 'Amplitude complète, menton au-dessus de la barre.'), E('Hip thrust', 'force', 'Fessiers', 'Pousse les hanches, verrouille 1 s en haut.'), E('Fentes', 'force', 'Quadriceps · Fessiers', 'Grand pas, genou arrière vers le sol, buste droit.'), E('Sprint 30 m', 'vitesse', 'Globale', 'Départ explosif, accélère, relâche en fin de course.'), E('Montées de genoux', 'vitesse', 'Fléchisseurs hanche', 'Fréquence haute, genoux à hauteur de hanche.'), E('Démarrages 10 m', 'vitesse', 'Globale', 'Position basse, 3 appuis explosifs puis relâche.'), E('Squat sauté', 'plio', 'Quadriceps · Mollets', 'Descends puis saute haut, réception amortie.'), E('Box jumps', 'plio', 'Globale', 'Saute sur la box, réception douce, redescends contrôlé.'), E('Drop jump', 'plio', 'Mollets · Quadriceps', 'Descends de la box, rebondis immédiatement.'), E('Course continue', 'endurance', 'Cardio', 'Allure régulière, respiration maîtrisée.'), E('Fractionné 30/30', 'endurance', 'Cardio', '30 s rapide / 30 s lent, allure constante.'), E('Corde à sauter', 'endurance', 'Mollets · Cardio', 'Petits sauts, poignets qui tournent, rythme régulier.'), E('Planche', 'gainage', 'Abdos profonds', 'Corps aligné, fessiers serrés, ne creuse pas le dos.'), E('Hollow hold', 'gainage', 'Abdos', 'Bas du dos plaqué au sol, bras et jambes tendus.'), E('Mountain climbers', 'gainage', 'Abdos · Cardio', 'Position pompe, ramène les genoux en rythme.'), E('Mobilité hanches', 'mobilite', 'Hanches', '90/90 ou fentes mobiles, va chercher l’amplitude.'), E('Cat-cow', 'mobilite', 'Colonne', 'Alterne dos rond / dos creux avec la respiration.')];
-  const find = n => exercises.find(e => e.name === n).id;
-  const B = (name, sets, reps, load, rest) => ({
-    exerciseId: find(name),
-    sets,
-    reps,
-    load,
-    rest
-  });
-  const sessions = [{
-    id: uid(),
-    name: 'Pleine puissance',
-    note: 'Force + explosivité bas du corps',
-    accent: 'force',
-    blocks: [B('Mobilité hanches', 1, '5 / côté', 'PdC', 30), B('Squat', 4, '5', '80 %', 150), B('Squat sauté', 4, '6', 'PdC', 120), B('Hip thrust', 3, '8', '60 kg', 120), B('Planche', 3, '45 s', 'PdC', 60)]
-  }, {
-    id: uid(),
-    name: 'Vitesse & gainage',
-    note: 'Vivacité et zone de force centrale',
-    accent: 'vitesse',
-    blocks: [B('Montées de genoux', 3, '20 s', 'PdC', 45), B('Sprint 30 m', 6, '1', 'max', 90), B('Box jumps', 4, '5', 'PdC', 90), B('Mountain climbers', 3, '30 s', 'PdC', 45), B('Hollow hold', 3, '30 s', 'PdC', 45)]
-  }, {
-    id: uid(),
-    name: 'Full body express',
-    note: '30 min, tout le corps',
-    accent: 'endurance',
-    blocks: [B('Squat', 3, '10', 'PdC', 60), B('Tractions', 3, '6', 'PdC', 90), B('Développé couché', 3, '10', '40 kg', 90), B('Corde à sauter', 3, '60 s', 'PdC', 45)]
-  }];
-  const today = new Date();
-  const day = n => new Date(today.getTime() - n * 864e5).toISOString();
-  const history = [{
-    id: uid(),
-    name: 'Vitesse & gainage',
-    date: day(1),
-    durationSec: 2640,
-    totalSets: 19,
-    doneSets: 19,
-    rpe: 8
-  }, {
-    id: uid(),
-    name: 'Pleine puissance',
-    date: day(3),
-    durationSec: 3180,
-    totalSets: 15,
-    doneSets: 14,
-    rpe: 9
-  }, {
-    id: uid(),
-    name: 'Full body express',
-    date: day(5),
-    durationSec: 1860,
-    totalSets: 12,
-    doneSets: 12,
-    rpe: 6
-  }, {
-    id: uid(),
-    name: 'Pleine puissance',
-    date: day(8),
-    durationSec: 3060,
-    totalSets: 15,
-    doneSets: 15,
-    rpe: 8
-  }, {
-    id: uid(),
-    name: 'Vitesse & gainage',
-    date: day(10),
-    durationSec: 2520,
-    totalSets: 19,
-    doneSets: 17,
-    rpe: 7
-  }];
   return {
-    exercises,
-    sessions,
-    history
+    exercises: [],
+    sessions: [],
+    history: []
   };
 }
 
@@ -3085,7 +3008,7 @@ function HomeScreen({
     name: "flame",
     size: 16,
     stroke: "#F59E0B"
-  }), " ", streak > 0 ? `Série de ${streak} jour${streak > 1 ? 's' : ''}` : 'Commence ta série'))), /*#__PURE__*/React.createElement("div", {
+  }), " ", streak > 0 ? `Série de ${streak} jour${streak > 1 ? 's' : ''}` : 'Commence ta série'))), suggested ? /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("div", {
     style: {
       margin: '22px 0 10px',
       display: 'flex',
@@ -3097,7 +3020,7 @@ function HomeScreen({
   }, "S\xE9ance du jour"), /*#__PURE__*/React.createElement("button", {
     onClick: () => actions.goTab('sessions'),
     style: linkBtn(t)
-  }, "Tout voir")), suggested && /*#__PURE__*/React.createElement("div", {
+  }, "Tout voir")), /*#__PURE__*/React.createElement("div", {
     style: {
       borderRadius: 24,
       overflow: 'hidden',
@@ -3183,7 +3106,63 @@ function HomeScreen({
     name: "play",
     size: 19,
     stroke: t.ink
-  }), " D\xE9marrer la s\xE9ance"))), /*#__PURE__*/React.createElement("h2", {
+  }), " D\xE9marrer la s\xE9ance")))) : /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("h2", {
+    style: {
+      ...sectionTitle(t),
+      margin: '22px 0 10px'
+    }
+  }, "Commencer"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      background: t.surface,
+      border: `1px solid ${t.line}`,
+      borderRadius: 24,
+      padding: '24px 20px',
+      textAlign: 'center',
+      boxShadow: t.shadowSm
+    }
+  }, /*#__PURE__*/React.createElement("span", {
+    style: {
+      width: 52,
+      height: 52,
+      borderRadius: 15,
+      background: t.accentSoft,
+      display: 'inline-flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      marginBottom: 12
+    }
+  }, /*#__PURE__*/React.createElement(Icon, {
+    name: "dumbbell",
+    size: 26,
+    stroke: t.accent
+  })), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 17,
+      fontWeight: 740,
+      color: t.ink
+    }
+  }, "Cr\xE9e ta premi\xE8re s\xE9ance"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 14,
+      color: t.sub,
+      marginTop: 4,
+      lineHeight: 1.45
+    }
+  }, "Ajoute des exercices, puis lance-toi en mode guid\xE9."), /*#__PURE__*/React.createElement("button", {
+    onClick: () => actions.goTab('sessions'),
+    style: {
+      marginTop: 16,
+      border: 'none',
+      cursor: 'pointer',
+      borderRadius: 14,
+      padding: '12px 22px',
+      background: t.accent,
+      color: '#fff',
+      fontSize: 15.5,
+      fontWeight: 680,
+      boxShadow: '0 6px 16px rgba(31,107,255,0.26)'
+    }
+  }, "Nouvelle s\xE9ance"))), /*#__PURE__*/React.createElement("h2", {
     style: {
       ...sectionTitle(t),
       margin: '24px 0 10px'
@@ -3417,10 +3396,16 @@ function ExercisesScreen({
     style: {
       padding: '10px 20px 0'
     }
-  }, items.length === 0 ? /*#__PURE__*/React.createElement(Empty, {
+  }, items.length === 0 ? data.exercises.length === 0 ? /*#__PURE__*/React.createElement(Empty, {
+    icon: "dumbbell",
+    title: "Aucun exercice",
+    text: "Ajoute ton premier mouvement \xE0 ta biblioth\xE8que.",
+    action: "Nouvel exercice",
+    onAction: onNew
+  }) : /*#__PURE__*/React.createElement(Empty, {
     icon: "search",
     title: "Aucun r\xE9sultat",
-    text: "Modifie ta recherche ou ajoute un exercice."
+    text: "Modifie ta recherche ou essaie une autre cat\xE9gorie."
   }) : items.map(ex => {
     const c = catById(ex.category);
     return /*#__PURE__*/React.createElement("button", {
@@ -3957,7 +3942,7 @@ const {
   useEffect,
   useMemo
 } = React;
-const STORE = 'athlyt-v2';
+const STORE = 'athlyt-v3'; // bump = on repart d'un état vierge (purge des données de test)
 const ACCENT = '#1F6BFF'; // accent par défaut (modifiable dans Paramètres)
 const DEFAULT_PREFS = {
   disciplines: ['force', 'vitesse'],
@@ -4095,7 +4080,7 @@ function App() {
   const resetAll = () => {
     setData(seedData());
     setTab('home');
-    toast('Données réinitialisées');
+    toast('Données effacées');
   };
   const actions = {
     goTab: setTab,
@@ -4578,13 +4563,13 @@ function SettingsScreen({
       fontWeight: 640,
       color: '#FF5A5F'
     }
-  }, "R\xE9initialiser les donn\xE9es"), /*#__PURE__*/React.createElement("div", {
+  }, "Tout effacer"), /*#__PURE__*/React.createElement("div", {
     style: {
       fontSize: 13,
       color: t.sub,
       marginTop: 1
     }
-  }, "Restaure les donn\xE9es d\u2019exemple")))), /*#__PURE__*/React.createElement("div", {
+  }, "Supprime s\xE9ances, exercices et historique")))), /*#__PURE__*/React.createElement("div", {
     style: {
       textAlign: 'center',
       color: t.faint,
@@ -4592,7 +4577,7 @@ function SettingsScreen({
       marginTop: 4
     }
   }, "Athlyt \xB7 v1")), confirm && /*#__PURE__*/React.createElement(Sheet, {
-    title: "R\xE9initialiser ?",
+    title: "Tout effacer ?",
     onClose: () => setConfirm(false)
   }, /*#__PURE__*/React.createElement("p", {
     style: {
@@ -4601,7 +4586,7 @@ function SettingsScreen({
       lineHeight: 1.5,
       color: t.sub
     }
-  }, "Tes s\xE9ances, exercices et historique seront remplac\xE9s par les donn\xE9es d\u2019exemple. Action irr\xE9versible."), /*#__PURE__*/React.createElement("div", {
+  }, "Tes s\xE9ances, exercices et historique seront d\xE9finitivement supprim\xE9s. Action irr\xE9versible."), /*#__PURE__*/React.createElement("div", {
     style: {
       display: 'flex',
       gap: 10
@@ -4636,7 +4621,7 @@ function SettingsScreen({
       fontSize: 16,
       fontWeight: 700
     }
-  }, "R\xE9initialiser"))));
+  }, "Tout effacer"))));
 }
 Object.assign(window, {
   SettingsScreen

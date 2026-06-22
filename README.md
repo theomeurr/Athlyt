@@ -57,4 +57,4 @@ npm run icons                    # régénère les icônes PNG depuis le SVG
 
 ## Données
 
-Au premier lancement : une bibliothèque d'exercices et trois séances d'exemple. Les données vivent dans `localStorage` (`athlyt-v2`).
+L'app démarre **vierge** (aucune donnée d'exemple) : ajoute tes exercices puis construis tes séances. Les données vivent dans `localStorage` (`athlyt-v3`). « Tout effacer » (Paramètres) repart d'un état vierge.
