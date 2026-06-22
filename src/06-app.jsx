@@ -49,6 +49,7 @@ function App() {
   const [exDetail, setExDetail] = useState(null);
   const [exEdit, setExEdit] = useState(undefined); // undefined = fermé, null = nouveau, obj = édition
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const [importOpen, setImportOpen] = useState(false);
   const [toastMsg, setToastMsg] = useState(null);
 
   const theme = useMemo(() => buildTheme(dark, accent), [dark, accent]);
@@ -90,12 +91,33 @@ function App() {
   const addHistory = (h) => setData((d) => ({ ...d, history: [h, ...d.history] }));
   const resetAll = () => { setData(seedData()); setTab('home'); toast('Données effacées'); };
 
+  // Import : crée les exercices manquants (dédoublonnage par nom) + la séance.
+  const importWorkout = ({ name, note, items }) => {
+    if (!items || !items.length) return;
+    const sid = uid();
+    setData((d) => {
+      const exercises = [...d.exercises];
+      const findByName = (nm) => exercises.find((e) => e.name.toLowerCase() === nm.trim().toLowerCase());
+      const blocks = items.map((it) => {
+        let ex = findByName(it.name);
+        if (!ex) { ex = { id: uid(), name: it.name.trim(), category: it.category || 'force', muscles: '', instructions: '' }; exercises.push(ex); }
+        return { exerciseId: ex.id, sets: Number(it.sets) || 1, reps: String(it.reps || ''), load: it.load || '', rest: Number(it.rest) || 90 };
+      });
+      const session = { id: sid, name: name || 'Séance importée', note: note || '', accent: items[0]?.category || 'force', blocks };
+      return { ...d, exercises, sessions: [...d.sessions, session] };
+    });
+    setImportOpen(false);
+    setEditSessionId(sid);
+    toast('Séance importée ✅');
+  };
+
   const actions = {
     goTab: setTab,
     startGuided: (id) => setGuidedId(id),
     openSession: (id) => setEditSessionId(id),
     openTimer: (mode) => setTimerMode(mode),
     openSettings: () => setSettingsOpen(true),
+    openImport: () => setImportOpen(true),
   };
 
   const guidedSession = guidedId && data.sessions.find((s) => s.id === guidedId);
@@ -103,7 +125,7 @@ function App() {
 
   let screen;
   if (tab === 'home') screen = <HomeScreen data={data} actions={actions} prefs={prefs} />;
-  else if (tab === 'sessions') screen = <SessionsScreen data={data} actions={actions} onNew={newSession} />;
+  else if (tab === 'sessions') screen = <SessionsScreen data={data} actions={actions} onNew={newSession} onImport={actions.openImport} />;
   else if (tab === 'exercises') screen = <ExercisesScreen data={data} onOpenExercise={setExDetail} onNew={() => setExEdit(null)} />;
   else if (tab === 'timer') screen = <TimerScreen onOpenTimer={actions.openTimer} />;
   else screen = <ActivityScreen data={data} />;
@@ -140,6 +162,9 @@ function App() {
         {settingsOpen && (
           <SettingsScreen dark={dark} setDark={setDark} accent={accent} setAccent={setAccent}
             prefs={prefs} setPrefs={setPrefs} onReset={resetAll} onClose={() => setSettingsOpen(false)} />
+        )}
+        {importOpen && (
+          <ImportScreen existing={data.exercises} onImport={importWorkout} onClose={() => setImportOpen(false)} />
         )}
 
         {toastMsg && (

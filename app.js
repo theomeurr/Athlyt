@@ -451,6 +451,27 @@ function Icon({
       r: "3.8"
     })), /*#__PURE__*/React.createElement("path", _extends({}, p, {
       d: "M5 20c0-3.6 3.1-5.5 7-5.5s7 1.9 7 5.5"
+    }))),
+    scan: /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("path", _extends({}, p, {
+      d: "M4 8.5V6a2 2 0 0 1 2-2h2.5"
+    })), /*#__PURE__*/React.createElement("path", _extends({}, p, {
+      d: "M15.5 4H18a2 2 0 0 1 2 2v2.5"
+    })), /*#__PURE__*/React.createElement("path", _extends({}, p, {
+      d: "M20 15.5V18a2 2 0 0 1-2 2h-2.5"
+    })), /*#__PURE__*/React.createElement("path", _extends({}, p, {
+      d: "M8.5 20H6a2 2 0 0 1-2-2v-2.5"
+    })), /*#__PURE__*/React.createElement("path", _extends({}, p, {
+      d: "M4 12h16"
+    }))),
+    camera: /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("path", _extends({}, p, {
+      d: "M3 9a2 2 0 0 1 2-2h2l1.2-1.6a1 1 0 0 1 .8-.4h6a1 1 0 0 1 .8.4L17 7h2a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"
+    })), /*#__PURE__*/React.createElement("circle", _extends({}, p, {
+      cx: "12",
+      cy: "13",
+      r: "3.2"
+    }))),
+    text: /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("path", _extends({}, p, {
+      d: "M5 6h14M5 10h14M5 14h9M5 18h11"
     })))
   };
   return /*#__PURE__*/React.createElement("svg", {
@@ -3276,7 +3297,8 @@ function QuickAction({
 function SessionsScreen({
   data,
   actions,
-  onNew
+  onNew,
+  onImport
 }) {
   const t = useTheme();
   return /*#__PURE__*/React.createElement("div", {
@@ -3286,22 +3308,52 @@ function SessionsScreen({
   }, /*#__PURE__*/React.createElement(ScreenHeader, {
     title: "S\xE9ances",
     sub: "Tes entra\xEEnements",
-    trailing: /*#__PURE__*/React.createElement(CircleBtn, {
+    trailing: /*#__PURE__*/React.createElement("div", {
+      style: {
+        display: 'flex',
+        gap: 10
+      }
+    }, /*#__PURE__*/React.createElement(CircleBtn, {
+      name: "scan",
+      onClick: onImport
+    }), /*#__PURE__*/React.createElement(CircleBtn, {
       name: "plus",
       accent: true,
       onClick: onNew
-    })
+    }))
   }), /*#__PURE__*/React.createElement("div", {
     style: {
       padding: '16px 20px 0'
     }
-  }, data.sessions.length === 0 ? /*#__PURE__*/React.createElement(Empty, {
+  }, data.sessions.length === 0 ? /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement(Empty, {
     icon: "list",
     title: "Aucune s\xE9ance",
-    text: "Cr\xE9e ta premi\xE8re s\xE9ance et ajoute des exercices.",
+    text: "Cr\xE9e ta premi\xE8re s\xE9ance, ou importe-la depuis un texte / un mod\xE8le.",
     action: "Nouvelle s\xE9ance",
     onAction: onNew
-  }) : data.sessions.map(s => /*#__PURE__*/React.createElement(SessionCard, {
+  }), /*#__PURE__*/React.createElement("button", {
+    onClick: onImport,
+    style: {
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      gap: 8,
+      margin: '0 auto',
+      border: `1px solid ${t.line}`,
+      background: t.surface,
+      color: t.ink,
+      cursor: 'pointer',
+      borderRadius: 14,
+      padding: '12px 20px',
+      fontSize: 15,
+      fontWeight: 680,
+      boxShadow: t.shadowSm
+    }
+  }, /*#__PURE__*/React.createElement(Icon, {
+    name: "scan",
+    size: 18,
+    stroke: t.accent
+  }), " Importer une s\xE9ance")) : data.sessions.map(s => /*#__PURE__*/React.createElement(SessionCard, {
     key: s.id,
     session: s,
     exercises: data.exercises,
@@ -4001,6 +4053,7 @@ function App() {
   const [exDetail, setExDetail] = useState(null);
   const [exEdit, setExEdit] = useState(undefined); // undefined = fermé, null = nouveau, obj = édition
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const [importOpen, setImportOpen] = useState(false);
   const [toastMsg, setToastMsg] = useState(null);
   const theme = useMemo(() => buildTheme(dark, accent), [dark, accent]);
 
@@ -4082,12 +4135,62 @@ function App() {
     setTab('home');
     toast('Données effacées');
   };
+
+  // Import : crée les exercices manquants (dédoublonnage par nom) + la séance.
+  const importWorkout = ({
+    name,
+    note,
+    items
+  }) => {
+    if (!items || !items.length) return;
+    const sid = uid();
+    setData(d => {
+      const exercises = [...d.exercises];
+      const findByName = nm => exercises.find(e => e.name.toLowerCase() === nm.trim().toLowerCase());
+      const blocks = items.map(it => {
+        let ex = findByName(it.name);
+        if (!ex) {
+          ex = {
+            id: uid(),
+            name: it.name.trim(),
+            category: it.category || 'force',
+            muscles: '',
+            instructions: ''
+          };
+          exercises.push(ex);
+        }
+        return {
+          exerciseId: ex.id,
+          sets: Number(it.sets) || 1,
+          reps: String(it.reps || ''),
+          load: it.load || '',
+          rest: Number(it.rest) || 90
+        };
+      });
+      const session = {
+        id: sid,
+        name: name || 'Séance importée',
+        note: note || '',
+        accent: items[0]?.category || 'force',
+        blocks
+      };
+      return {
+        ...d,
+        exercises,
+        sessions: [...d.sessions, session]
+      };
+    });
+    setImportOpen(false);
+    setEditSessionId(sid);
+    toast('Séance importée ✅');
+  };
   const actions = {
     goTab: setTab,
     startGuided: id => setGuidedId(id),
     openSession: id => setEditSessionId(id),
     openTimer: mode => setTimerMode(mode),
-    openSettings: () => setSettingsOpen(true)
+    openSettings: () => setSettingsOpen(true),
+    openImport: () => setImportOpen(true)
   };
   const guidedSession = guidedId && data.sessions.find(s => s.id === guidedId);
   const editSession = editSessionId && data.sessions.find(s => s.id === editSessionId);
@@ -4099,7 +4202,8 @@ function App() {
   });else if (tab === 'sessions') screen = /*#__PURE__*/React.createElement(SessionsScreen, {
     data: data,
     actions: actions,
-    onNew: newSession
+    onNew: newSession,
+    onImport: actions.openImport
   });else if (tab === 'exercises') screen = /*#__PURE__*/React.createElement(ExercisesScreen, {
     data: data,
     onOpenExercise: setExDetail,
@@ -4185,6 +4289,10 @@ function App() {
     setPrefs: setPrefs,
     onReset: resetAll,
     onClose: () => setSettingsOpen(false)
+  }), importOpen && /*#__PURE__*/React.createElement(ImportScreen, {
+    existing: data.exercises,
+    onImport: importWorkout,
+    onClose: () => setImportOpen(false)
   }), toastMsg && /*#__PURE__*/React.createElement("div", {
     style: {
       position: 'absolute',
@@ -4625,6 +4733,472 @@ function SettingsScreen({
 }
 Object.assign(window, {
   SettingsScreen
+});
+
+/* ======================= 08-import.jsx ======================= */
+// athlyt-import.jsx — import d'une séance depuis du texte (ou un modèle).
+// parseWorkout() transforme un texte libre en séance structurée ; l'OCR (photo)
+// se branchera dessus en pré-remplissant le texte éditable.
+
+/* ----------------------------------------------------- Parseur texte → séance */
+const _SECTION_CAT = [[/plyo|plio|jump|saut|bond|hop/i, 'plio'], [/strength|force/i, 'force'], [/build|hypertroph|muscle|accessor/i, 'force'], [/trunk|core|gainage|abdo|abs/i, 'gainage'], [/speed|vitesse|sprint|accel/i, 'vitesse'], [/endurance|condition|cardio|metcon/i, 'endurance'], [/mobil|stretch|étirement|souplesse|warm|échauff/i, 'mobilite']];
+const _KW_CAT = [[/pogo|hop|jump|saut|bond|skater|plyo|drop|box/i, 'plio'], [/sprint|dash|accel|navette|shuttle/i, 'vitesse'], [/run|course|row(er)?|bike|vélo|velo|rope|corde|cardio|erg|ski/i, 'endurance'], [/plank|planche|cobra|hollow|crunch|sit.?up|gainage|abs|abdo|twist|climber|core|dead.?bug|cobra/i, 'gainage'], [/stretch|mobil|étirement|cat.?cow|opener/i, 'mobilite'], [/press|bench|squat|deadlift|soulev|curl|row|pull|chin|raise|extension|fly|face.?pull|thrust|lunge|fente|dip|push.?up|pompe|shrug|clean|snatch|ohp|military|hinge|rdl/i, 'force']];
+const _REST = {
+  plio: 75,
+  force: 90,
+  gainage: 45,
+  vitesse: 120,
+  endurance: 60,
+  mobilite: 30
+};
+const _catFromSection = l => {
+  for (const [re, c] of _SECTION_CAT) if (re.test(l)) return c;
+  return null;
+};
+const _catFromName = (nm, fallback) => {
+  for (const [re, c] of _KW_CAT) if (re.test(nm)) return c;
+  return fallback || 'force';
+};
+function _normReps(s) {
+  // NB : pas de \b final — "côté" finit par "é", qui n'est pas un caractère de mot
+  // en regex JS, donc \b échouerait juste après.
+  return s.replace(/\s+/g, ' ').replace(/\bchaque\s+c[oô]t[eé]s?/gi, '/côté').replace(/\bchaque\s+(?:direction|sens)s?/gi, '/dir').replace(/\bper\s+(?:side|leg)s?/gi, '/côté').trim();
+}
+function _parseLine(line) {
+  // retire les énumérateurs : "1.A.", "4.B.", "1)", "-", "•", "*"
+  const s = line.replace(/^\s*(\d+\s*[.)]\s*[A-Za-z]?\.?|[A-Za-z]\.|[-–—•*])\s+/, '').trim();
+  // motif :  Nom <sep> <séries> x <reps>
+  const m = s.match(/^(.+?)[\s:—–-]+(\d+)\s*[x×]\s*(.+)$/i);
+  if (!m) return null;
+  const name = m[1].replace(/[\s:—–-]+$/, '').trim();
+  const sets = parseInt(m[2], 10);
+  const reps = _normReps(m[3]);
+  if (!name || name.length > 60 || !sets) return null;
+  return {
+    name,
+    sets,
+    reps
+  };
+}
+function parseWorkout(raw) {
+  const lines = String(raw || '').split(/\r?\n/).map(l => l.trim()).filter(Boolean);
+  let name = '',
+    note = [],
+    section = null,
+    sectionCat = null;
+  const items = [];
+  const isMeta = l => /^(phase|week|semaine|day|jour|bloc|block|session|s[ée]ance|programme)\b/i.test(l) || /\b(adaptation|accumulation|intensification|r[ée]alisation|deload|d[ée]charge|affûtage|affutage)\b/i.test(l);
+  const looksHeader = l => !/\d/.test(l) && l.split(/\s+/).length <= 4;
+  for (const line of lines) {
+    const ex = _parseLine(line);
+    if (ex) {
+      const cat = _catFromName(ex.name, sectionCat);
+      items.push({
+        ...ex,
+        load: '',
+        category: cat,
+        rest: _REST[cat] || 75,
+        section: section || ''
+      });
+      continue;
+    }
+    if (isMeta(line)) {
+      if (/^(day|jour|s[ée]ance|session)\b/i.test(line) && !name) name = line.replace(/\s*-\s*/g, ' — ');else note.push(line);
+      continue;
+    }
+    if (_catFromSection(line) || looksHeader(line)) {
+      section = line.replace(/\s*[-–—:]\s*$/, '').trim();
+      sectionCat = _catFromSection(line);
+      continue;
+    }
+    // sinon : ligne ignorée (texte parasite)
+  }
+  return {
+    name: name || 'Séance importée',
+    note: note.join(' · '),
+    items
+  };
+}
+
+/* ----------------------------------------------------- Modèles intégrés */
+const WORKOUT_TEMPLATES = [{
+  id: 'p1w1d3',
+  title: 'Phase 1 · Semaine 1 · Jour 3',
+  sub: 'Plyométrie / Force / Hypertrophie',
+  text: `Phase 1 : Week 1 - Adaptation
+Day 3 - Plyometrics / Strength / Hypertrophy
+
+Plyometrics - Foundation
+Pogo Jumps — 2 x 10 sec
+Lateral Pogo Jumps — 2 x 10 yards chaque direction
+Line Hops — 2 x 10 sec
+Lateral Line Hops — 2 x 10 sec
+Alternating Lunge Jumps — 2 x 10 sec
+Ascending Skater Jumps — 4 x 10 yards chaque côté
+
+Strength
+1.A. Floor Press — 3 x 10
+1.B. Facepulls — 3 x 12
+
+Build
+Dumbbell Bench Press — 3 x 12
+Pull Ups — 3 x Max
+Lateral Raises — 3 x 12
+4.A. Barbell Curls — 3 x 12
+4.B. Reverse Grip Tricep Extension — 3 x 12
+
+Trunk
+Prone Cobra — 2 x 60 sec chaque côté`
+}];
+
+/* ----------------------------------------------------- Écran d'import */
+function ImportScreen({
+  existing = [],
+  onImport,
+  onClose
+}) {
+  const t = useTheme();
+  const [tab, setTab] = React.useState('text');
+  const [text, setText] = React.useState('');
+  const [nameEdit, setNameEdit] = React.useState(null);
+  const [excluded, setExcluded] = React.useState(() => new Set());
+  const parsed = React.useMemo(() => parseWorkout(text), [text]);
+  const items = parsed.items.filter((_, i) => !excluded.has(i));
+  const name = nameEdit != null ? nameEdit : parsed.name;
+  const existingNames = React.useMemo(() => new Set(existing.map(e => e.name.toLowerCase())), [existing]);
+  const loadText = v => {
+    setText(v);
+    setNameEdit(null);
+    setExcluded(new Set());
+  };
+
+  // regroupe l'aperçu par section, dans l'ordre d'apparition
+  const groups = [];
+  parsed.items.forEach((it, i) => {
+    if (excluded.has(i)) return;
+    let g = groups.find(x => x.section === it.section);
+    if (!g) {
+      g = {
+        section: it.section,
+        list: []
+      };
+      groups.push(g);
+    }
+    g.list.push({
+      it,
+      i
+    });
+  });
+  const TABS = [['text', 'Texte', 'text'], ['template', 'Modèle', 'scan']];
+  return /*#__PURE__*/React.createElement("div", {
+    style: {
+      position: 'absolute',
+      inset: 0,
+      zIndex: 115,
+      background: t.bg,
+      display: 'flex',
+      flexDirection: 'column'
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      padding: '58px 20px 8px',
+      display: 'flex',
+      alignItems: 'center',
+      gap: 12
+    }
+  }, /*#__PURE__*/React.createElement("button", {
+    onClick: onClose,
+    style: iconBtn(t)
+  }, /*#__PURE__*/React.createElement(Icon, {
+    name: "chevron-l",
+    size: 20,
+    sw: 2.2,
+    stroke: t.ink
+  })), /*#__PURE__*/React.createElement("div", {
+    style: {
+      flex: 1,
+      fontSize: 22,
+      fontWeight: 800,
+      letterSpacing: -0.5,
+      color: t.ink
+    }
+  }, "Importer une s\xE9ance")), /*#__PURE__*/React.createElement("div", {
+    style: {
+      flex: 1,
+      overflowY: 'auto',
+      WebkitOverflowScrolling: 'touch',
+      padding: '12px 20px calc(120px + env(safe-area-inset-bottom))'
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      background: t.fill,
+      borderRadius: 14,
+      padding: 4,
+      gap: 4,
+      marginBottom: 16
+    }
+  }, TABS.map(([id, label, icon]) => /*#__PURE__*/React.createElement("button", {
+    key: id,
+    onClick: () => setTab(id),
+    style: {
+      flex: 1,
+      border: 'none',
+      cursor: 'pointer',
+      borderRadius: 10,
+      padding: '10px 4px',
+      background: tab === id ? t.surface : 'transparent',
+      color: tab === id ? t.ink : t.sub,
+      fontSize: 14.5,
+      fontWeight: 640,
+      boxShadow: tab === id ? t.shadowSm : 'none',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      gap: 7
+    }
+  }, /*#__PURE__*/React.createElement(Icon, {
+    name: icon,
+    size: 17,
+    stroke: tab === id ? t.accent : t.sub
+  }), " ", label))), tab === 'text' && /*#__PURE__*/React.createElement("textarea", {
+    value: text,
+    onChange: e => loadText(e.target.value),
+    autoFocus: true,
+    placeholder: "Colle ou écris ta séance, ex :\n\nStrength\nFloor Press — 3 x 10\nFacepulls — 3 x 12\n\nTrunk\nProne Cobra — 2 x 60 sec",
+    style: {
+      ...inputStyle(t),
+      minHeight: 150,
+      resize: 'vertical',
+      lineHeight: 1.5,
+      fontSize: 15
+    }
+  }), tab === 'template' && /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      flexDirection: 'column',
+      gap: 10
+    }
+  }, WORKOUT_TEMPLATES.map(tpl => {
+    const n = parseWorkout(tpl.text).items.length;
+    return /*#__PURE__*/React.createElement("button", {
+      key: tpl.id,
+      onClick: () => {
+        loadText(tpl.text);
+        setTab('text');
+      },
+      style: {
+        width: '100%',
+        textAlign: 'left',
+        cursor: 'pointer',
+        background: t.surface,
+        border: `1px solid ${t.line}`,
+        borderRadius: 16,
+        padding: '14px 16px',
+        display: 'flex',
+        alignItems: 'center',
+        gap: 14,
+        boxShadow: t.shadowSm
+      }
+    }, /*#__PURE__*/React.createElement("span", {
+      style: {
+        width: 42,
+        height: 42,
+        borderRadius: 12,
+        background: t.accentSoft,
+        flexShrink: 0,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center'
+      }
+    }, /*#__PURE__*/React.createElement(Icon, {
+      name: "bolt",
+      size: 22,
+      stroke: t.accent
+    })), /*#__PURE__*/React.createElement("div", {
+      style: {
+        flex: 1,
+        minWidth: 0
+      }
+    }, /*#__PURE__*/React.createElement("div", {
+      style: {
+        fontSize: 16,
+        fontWeight: 700,
+        color: t.ink
+      }
+    }, tpl.title), /*#__PURE__*/React.createElement("div", {
+      style: {
+        fontSize: 13,
+        color: t.sub,
+        marginTop: 1
+      }
+    }, tpl.sub, " \xB7 ", n, " exercices")), /*#__PURE__*/React.createElement(Icon, {
+      name: "chevron",
+      size: 18,
+      stroke: t.faint
+    }));
+  }), /*#__PURE__*/React.createElement("p", {
+    style: {
+      fontSize: 13,
+      color: t.faint,
+      lineHeight: 1.5,
+      margin: '6px 4px 0'
+    }
+  }, "Charge un mod\xE8le : son contenu s'ouvre dans l'onglet Texte, modifiable avant l'ajout.")), parsed.items.length > 0 && /*#__PURE__*/React.createElement("div", {
+    style: {
+      marginTop: 22
+    }
+  }, /*#__PURE__*/React.createElement(Label, {
+    text: `Aperçu · ${items.length} exercice${items.length > 1 ? 's' : ''}`
+  }), /*#__PURE__*/React.createElement("input", {
+    value: name,
+    onChange: e => setNameEdit(e.target.value),
+    placeholder: "Nom de la s\xE9ance",
+    style: {
+      ...inputStyle(t),
+      fontSize: 17,
+      fontWeight: 700,
+      marginBottom: 4
+    }
+  }), parsed.note && /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 13,
+      color: t.sub,
+      margin: '2px 2px 12px'
+    }
+  }, parsed.note), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      flexDirection: 'column',
+      gap: 14,
+      marginTop: 10
+    }
+  }, groups.map((g, gi) => /*#__PURE__*/React.createElement("div", {
+    key: gi
+  }, g.section && /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 12,
+      fontWeight: 700,
+      textTransform: 'uppercase',
+      letterSpacing: 0.4,
+      color: t.faint,
+      margin: '0 2px 8px'
+    }
+  }, g.section), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      flexDirection: 'column',
+      gap: 8
+    }
+  }, g.list.map(({
+    it,
+    i
+  }) => {
+    const c = catById(it.category);
+    const exists = existingNames.has(it.name.toLowerCase());
+    return /*#__PURE__*/React.createElement("div", {
+      key: i,
+      style: {
+        background: t.surface,
+        border: `1px solid ${t.line}`,
+        borderRadius: 14,
+        padding: '12px 14px',
+        display: 'flex',
+        alignItems: 'center',
+        gap: 12,
+        boxShadow: t.shadowSm
+      }
+    }, /*#__PURE__*/React.createElement("span", {
+      style: {
+        width: 9,
+        height: 9,
+        borderRadius: 99,
+        background: c.color,
+        flexShrink: 0
+      }
+    }), /*#__PURE__*/React.createElement("div", {
+      style: {
+        flex: 1,
+        minWidth: 0
+      }
+    }, /*#__PURE__*/React.createElement("div", {
+      style: {
+        fontSize: 15.5,
+        fontWeight: 650,
+        color: t.ink
+      }
+    }, it.name, exists && /*#__PURE__*/React.createElement("span", {
+      style: {
+        fontSize: 11,
+        fontWeight: 700,
+        color: t.sub,
+        marginLeft: 8
+      }
+    }, "\xB7 d\xE9j\xE0 cr\xE9\xE9")), /*#__PURE__*/React.createElement("div", {
+      style: {
+        fontSize: 13,
+        color: t.sub,
+        marginTop: 1
+      }
+    }, it.sets, " \xD7 ", it.reps, " \xB7 ", c.name)), /*#__PURE__*/React.createElement("button", {
+      onClick: () => setExcluded(s => new Set(s).add(i)),
+      "aria-label": "Retirer",
+      style: {
+        border: 'none',
+        background: 'transparent',
+        cursor: 'pointer',
+        padding: 6,
+        color: t.faint
+      }
+    }, /*#__PURE__*/React.createElement(Icon, {
+      name: "close",
+      size: 17,
+      sw: 2.2,
+      stroke: t.faint
+    })));
+  })))))), tab === 'text' && text.trim() && parsed.items.length === 0 && /*#__PURE__*/React.createElement("p", {
+    style: {
+      fontSize: 13.5,
+      color: t.faint,
+      lineHeight: 1.5,
+      marginTop: 14
+    }
+  }, "Aucun exercice d\xE9tect\xE9. Une ligne doit ressembler \xE0 ", /*#__PURE__*/React.createElement("b", {
+    style: {
+      color: t.sub
+    }
+  }, "Nom \u2014 s\xE9ries x reps"), " (ex : \xAB Squat \u2014 3 x 10 \xBB).")), /*#__PURE__*/React.createElement("div", {
+    style: {
+      position: 'absolute',
+      left: 0,
+      right: 0,
+      bottom: 0,
+      padding: '12px 20px calc(20px + env(safe-area-inset-bottom))',
+      background: t.bg,
+      borderTop: `1px solid ${t.line}`
+    }
+  }, /*#__PURE__*/React.createElement("button", {
+    disabled: !items.length,
+    onClick: () => onImport({
+      name,
+      note: parsed.note,
+      items
+    }),
+    style: {
+      ...navBtn(t, true),
+      opacity: items.length ? 1 : 0.5
+    }
+  }, /*#__PURE__*/React.createElement(Icon, {
+    name: "check",
+    size: 20,
+    sw: 2.6,
+    stroke: "#fff"
+  }), " Ajouter ", items.length ? `(${items.length})` : '')));
+}
+Object.assign(window, {
+  parseWorkout,
+  WORKOUT_TEMPLATES,
+  ImportScreen
 });
 
 /* ======================= 99-mount.jsx ======================= */

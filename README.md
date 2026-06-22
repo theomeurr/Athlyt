@@ -15,6 +15,7 @@ PWA installable, hors-ligne, orientation **polyvalente multisport** : Force · V
 - **Activité** — stats, graphe des séries par séance, historique.
 - **Séance guidée** — déroulé exercice par exercice, validation des séries, chrono de repos automatique, bilan (séries / durée / RPE).
 - **Paramètres** (icône ⚙️ sur l'Accueil) — apparence (thème clair/sombre, accent), entraînement (disciplines, objectif, niveau, séances/semaine), rappels, réinitialisation des données.
+- **Importer une séance** (icône ⛶ sur Séances) — colle/écris une séance ou charge un **modèle** ; le parseur (`parseWorkout`) reconnaît `Nom — séries x reps`, les préfixes `1.A.`, et les sections (Plyometrics, Strength, Trunk…), infère la catégorie, puis crée les exercices manquants (dédoublonnés) + la séance.
 
 Thème **clair/sombre** (préférence système par défaut, réglable dans Paramètres), accent bleu `#1F6BFF`.
 

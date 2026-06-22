@@ -212,14 +212,26 @@ function QuickAction({ icon, color, title, sub, onClick }) {
 }
 
 /* ----------------------------------------------------------- Séances */
-function SessionsScreen({ data, actions, onNew }) {
+function SessionsScreen({ data, actions, onNew, onImport }) {
   const t = useTheme();
   return (
     <div style={{ paddingBottom: 16 }}>
-      <ScreenHeader title="Séances" sub="Tes entraînements" trailing={<CircleBtn name="plus" accent onClick={onNew} />} />
+      <ScreenHeader title="Séances" sub="Tes entraînements" trailing={
+        <div style={{ display: 'flex', gap: 10 }}>
+          <CircleBtn name="scan" onClick={onImport} />
+          <CircleBtn name="plus" accent onClick={onNew} />
+        </div>
+      } />
       <div style={{ padding: '16px 20px 0' }}>
         {data.sessions.length === 0 ? (
-          <Empty icon="list" title="Aucune séance" text="Crée ta première séance et ajoute des exercices." action="Nouvelle séance" onAction={onNew} />
+          <>
+            <Empty icon="list" title="Aucune séance" text="Crée ta première séance, ou importe-la depuis un texte / un modèle." action="Nouvelle séance" onAction={onNew} />
+            <button onClick={onImport} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, margin: '0 auto',
+              border: `1px solid ${t.line}`, background: t.surface, color: t.ink, cursor: 'pointer', borderRadius: 14,
+              padding: '12px 20px', fontSize: 15, fontWeight: 680, boxShadow: t.shadowSm }}>
+              <Icon name="scan" size={18} stroke={t.accent} /> Importer une séance
+            </button>
+          </>
         ) : (
           data.sessions.map((s) => (
             <SessionCard key={s.id} session={s} exercises={data.exercises}

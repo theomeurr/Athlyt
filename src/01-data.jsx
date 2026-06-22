@@ -155,6 +155,9 @@ function Icon({ name, size = 24, stroke = 'currentColor', sw = 1.8, fill = 'none
     pause: <><rect x="7" y="5.5" width="3.2" height="13" rx="1.2" fill={stroke} stroke="none"/><rect x="13.8" y="5.5" width="3.2" height="13" rx="1.2" fill={stroke} stroke="none"/></>,
     pencil: <><path {...p} d="M4 20l4-1 10-10-3-3L5 16z"/><path {...p} d="M13.5 6.5l3 3"/></>,
     user: <><circle {...p} cx="12" cy="8.5" r="3.8"/><path {...p} d="M5 20c0-3.6 3.1-5.5 7-5.5s7 1.9 7 5.5"/></>,
+    scan: <><path {...p} d="M4 8.5V6a2 2 0 0 1 2-2h2.5"/><path {...p} d="M15.5 4H18a2 2 0 0 1 2 2v2.5"/><path {...p} d="M20 15.5V18a2 2 0 0 1-2 2h-2.5"/><path {...p} d="M8.5 20H6a2 2 0 0 1-2-2v-2.5"/><path {...p} d="M4 12h16"/></>,
+    camera: <><path {...p} d="M3 9a2 2 0 0 1 2-2h2l1.2-1.6a1 1 0 0 1 .8-.4h6a1 1 0 0 1 .8.4L17 7h2a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><circle {...p} cx="12" cy="13" r="3.2"/></>,
+    text: <><path {...p} d="M5 6h14M5 10h14M5 14h9M5 18h11"/></>,
   };
   return (
     <svg width={size} height={size} viewBox="0 0 24 24" style={{ display: 'block', flexShrink: 0 }}>
